@@ -1,0 +1,1230 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>تعلم GIS - كامل</title>
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;900&family=Space+Mono:wght@700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #060d1a;
+  --surface: #0d1626;
+  --card: #121f35;
+  --border: #1e3052;
+  --accent: #00d4ff;
+  --purple: #7c3aed;
+  --green: #10b981;
+  --yellow: #f59e0b;
+  --red: #ef4444;
+  --text: #e2e8f0;
+  --muted: #5a7399;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: 'Tajawal', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+body::before {
+  content: ''; position: fixed; inset: 0; pointer-events: none;
+  background: radial-gradient(ellipse at 15% 15%, rgba(0,212,255,0.05) 0%, transparent 50%),
+              radial-gradient(ellipse at 85% 85%, rgba(124,58,237,0.05) 0%, transparent 50%);
+}
+
+header {
+  background: rgba(6,13,26,0.97); backdrop-filter: blur(20px);
+  border-bottom: 1px solid var(--border);
+  padding: 0.9rem 1.2rem;
+  display: flex; align-items: center; justify-content: space-between;
+  position: sticky; top: 0; z-index: 100;
+}
+.logo { font-size: 1.2rem; font-weight: 900; }
+.logo span { color: var(--accent); }
+.xp-box {
+  display: flex; align-items: center; gap: 7px;
+  background: var(--card); border: 1px solid var(--border);
+  border-radius: 99px; padding: 5px 14px;
+}
+.xp-val { font-family: 'Space Mono', monospace; font-size: 0.85rem; color: var(--yellow); font-weight: 700; }
+
+nav {
+  background: var(--surface); border-bottom: 1px solid var(--border);
+  display: flex; overflow-x: auto; padding: 0 0.8rem;
+  scrollbar-width: none; position: sticky; top: 55px; z-index: 99;
+}
+nav::-webkit-scrollbar { display: none; }
+.tab {
+  flex-shrink: 0; padding: 0.8rem 1rem;
+  background: none; border: none; color: var(--muted); cursor: pointer;
+  font-family: 'Tajawal', sans-serif; font-size: 0.88rem; font-weight: 600;
+  border-bottom: 3px solid transparent; transition: all 0.2s; white-space: nowrap;
+}
+.tab:hover { color: var(--text); }
+.tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+
+main { max-width: 900px; margin: 0 auto; padding: 1.2rem; position: relative; z-index: 1; }
+.section { display: none; }
+.section.active { display: block; animation: fadeUp 0.3s ease; }
+@keyframes fadeUp { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:translateY(0); } }
+
+.sec-title { font-size: 1.4rem; font-weight: 900; margin-bottom: 0.3rem; }
+.sec-title span { color: var(--accent); }
+.sec-sub { color: var(--muted); font-size: 0.85rem; margin-bottom: 1.2rem; }
+
+/* ---- BUTTONS ---- */
+.btn {
+  padding: 9px 20px; border-radius: 10px; border: 1px solid var(--border);
+  background: var(--card); color: var(--text); cursor: pointer;
+  font-family: 'Tajawal', sans-serif; font-size: 0.9rem; font-weight: 700;
+  transition: all 0.18s;
+}
+.btn:hover { background: var(--border); }
+.btn.primary {
+  background: linear-gradient(135deg, var(--accent), var(--purple));
+  border-color: transparent; color: white;
+}
+.btn.primary:hover { opacity: 0.9; transform: scale(1.01); }
+.btn.green { background: rgba(16,185,129,0.15); border-color: var(--green); color: var(--green); }
+.btn.red { background: rgba(239,68,68,0.1); border-color: rgba(239,68,68,0.4); color: var(--red); }
+
+/* ---- FILTER PILLS ---- */
+.pills { display: flex; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 1rem; }
+.pill {
+  padding: 5px 13px; border-radius: 20px;
+  background: var(--card); border: 1px solid var(--border);
+  color: var(--muted); cursor: pointer; font-size: 0.78rem;
+  font-family: 'Tajawal', sans-serif; transition: all 0.18s;
+}
+.pill.active { background: var(--accent); border-color: var(--accent); color: #000; font-weight: 700; }
+.pill.purple.active { background: var(--purple); border-color: var(--purple); color: white; }
+
+/* ========== FLASHCARDS ========== */
+.fc-meta { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.8rem; flex-wrap: wrap; gap: 0.5rem; }
+.fc-counter { font-family: 'Space Mono', monospace; font-size: 0.85rem; color: var(--muted); }
+.fc-type-toggle { display: flex; gap: 0.5rem; }
+.type-pill {
+  padding: 4px 12px; border-radius: 20px; font-size: 0.78rem; font-weight: 700;
+  border: 1px solid var(--border); background: var(--card); color: var(--muted);
+  cursor: pointer; transition: all 0.18s; font-family: 'Tajawal', sans-serif;
+}
+.type-pill.active { background: var(--purple); border-color: var(--purple); color: white; }
+
+.flashcard-wrap { perspective: 1200px; margin-bottom: 1.2rem; }
+.flashcard {
+  width: 100%; min-height: 260px; position: relative;
+  transform-style: preserve-3d;
+  transition: transform 0.6s cubic-bezier(0.4,0,0.2,1); cursor: pointer;
+}
+.flashcard.flipped { transform: rotateY(180deg); }
+.face {
+  position: absolute; width: 100%; min-height: 260px;
+  backface-visibility: hidden; border-radius: 20px;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  padding: 1.8rem; text-align: center; border: 1px solid var(--border);
+}
+.face.front { background: linear-gradient(145deg, var(--card), #1a2d45); }
+.face.back {
+  background: linear-gradient(145deg, #0a1f35, #1a1040);
+  transform: rotateY(180deg);
+  border-color: var(--accent);
+  box-shadow: 0 0 40px rgba(0,212,255,0.1);
+}
+.face-tag { font-size: 0.65rem; font-weight: 700; letter-spacing: 3px; text-transform: uppercase; color: var(--muted); margin-bottom: 1rem; font-family: 'Space Mono', monospace; }
+.face.back .face-tag { color: var(--accent); }
+.main-text { font-size: 1.5rem; font-weight: 900; line-height: 1.4; max-width: 480px; }
+.main-text.en { font-family: 'Space Mono', monospace; font-size: 1rem; color: var(--accent); direction: ltr; }
+.pron-badge {
+  margin-top: 0.8rem; font-size: 0.88rem; color: var(--yellow);
+  background: rgba(245,158,11,0.1); border: 1px solid rgba(245,158,11,0.3);
+  border-radius: 8px; padding: 4px 12px;
+}
+.meaning-text { margin-top: 0.8rem; font-size: 0.85rem; color: var(--muted); line-height: 1.6; max-width: 400px; }
+.flip-hint { font-size: 0.7rem; color: var(--border); margin-top: 1.5rem; }
+
+.fc-actions { display: flex; gap: 0.7rem; justify-content: center; flex-wrap: wrap; }
+
+/* ========== QUIZ ========== */
+.quiz-config { background: var(--card); border: 1px solid var(--border); border-radius: 18px; padding: 1.5rem; margin-bottom: 1.2rem; }
+.quiz-config h3 { font-size: 1rem; margin-bottom: 1rem; }
+.config-row { display: flex; gap: 0.6rem; flex-wrap: wrap; margin-bottom: 0.8rem; }
+.cfg-btn {
+  padding: 7px 16px; border-radius: 10px;
+  background: var(--surface); border: 2px solid var(--border);
+  color: var(--muted); cursor: pointer; font-size: 0.85rem; font-weight: 700;
+  font-family: 'Tajawal', sans-serif; transition: all 0.18s;
+}
+.cfg-btn:hover { border-color: var(--accent); color: var(--text); }
+.cfg-btn.active { border-color: var(--accent); background: rgba(0,212,255,0.1); color: var(--accent); }
+
+.q-progress-wrap { margin-bottom: 1rem; }
+.q-prog-bar { height: 8px; background: var(--border); border-radius: 99px; overflow: hidden; }
+.q-prog-fill { height: 100%; background: linear-gradient(90deg, var(--green), var(--accent)); border-radius: 99px; transition: width 0.4s; }
+.q-prog-label { font-size: 0.75rem; color: var(--muted); margin-top: 4px; text-align: center; font-family: 'Space Mono', monospace; }
+
+.q-card { background: var(--card); border: 1px solid var(--border); border-radius: 18px; padding: 1.5rem; margin-bottom: 1rem; }
+.q-badge {
+  display: inline-block; padding: 3px 10px; border-radius: 20px;
+  font-size: 0.68rem; font-weight: 700; letter-spacing: 1px; margin-bottom: 0.8rem;
+}
+.q-badge.ae { background: rgba(0,212,255,0.15); color: var(--accent); }
+.q-badge.ea { background: rgba(124,58,237,0.15); color: #a78bfa; }
+.q-badge.para { background: rgba(16,185,129,0.15); color: var(--green); }
+
+.q-text { font-size: 1.25rem; font-weight: 900; line-height: 1.5; }
+.q-text.en { direction: ltr; font-family: 'Space Mono', monospace; font-size: 0.95rem; color: var(--accent); }
+.q-text.para-en { direction: ltr; font-size: 0.9rem; line-height: 1.7; color: var(--text); background: rgba(0,212,255,0.05); border: 1px solid rgba(0,212,255,0.15); border-radius: 10px; padding: 0.8rem; margin-top: 0.5rem; }
+.q-sub { font-size: 0.8rem; color: var(--muted); margin-top: 0.4rem; }
+
+.options { display: grid; grid-template-columns: 1fr 1fr; gap: 0.7rem; margin-bottom: 0.8rem; }
+@media(max-width:480px) { .options { grid-template-columns: 1fr; } }
+.opt {
+  padding: 0.85rem 1rem; border-radius: 12px;
+  background: var(--card); border: 2px solid var(--border);
+  color: var(--text); cursor: pointer; text-align: right;
+  font-family: 'Tajawal', sans-serif; font-size: 0.9rem; font-weight: 600;
+  transition: all 0.18s; line-height: 1.4;
+}
+.opt:hover:not(:disabled) { border-color: var(--accent); background: rgba(0,212,255,0.05); }
+.opt.correct { border-color: var(--green); background: rgba(16,185,129,0.15); color: var(--green); }
+.opt.wrong { border-color: var(--red); background: rgba(239,68,68,0.12); color: var(--red); }
+.opt:disabled { cursor: default; }
+.opt.para-opt { text-align: right; font-size: 0.82rem; padding: 0.7rem 0.9rem; }
+
+/* textarea for translation */
+.translate-box {
+  width: 100%; min-height: 80px; padding: 12px;
+  background: var(--surface); border: 2px solid var(--border);
+  border-radius: 12px; color: var(--text); font-family: 'Tajawal', sans-serif;
+  font-size: 0.95rem; resize: vertical; outline: none; transition: border-color 0.2s;
+  direction: rtl;
+}
+.translate-box:focus { border-color: var(--accent); }
+.translate-box::placeholder { color: var(--muted); }
+.translate-box.en-input { direction: ltr; }
+
+.feedback {
+  padding: 0.9rem 1.2rem; border-radius: 12px;
+  font-weight: 700; font-size: 0.95rem; margin-bottom: 0.8rem;
+  display: none; line-height: 1.6;
+}
+.feedback.show { display: block; animation: fadeUp 0.2s ease; }
+.feedback.correct { background: rgba(16,185,129,0.15); border: 1px solid var(--green); color: var(--green); }
+.feedback.wrong { background: rgba(239,68,68,0.12); border: 1px solid var(--red); color: var(--red); }
+.feedback.partial { background: rgba(245,158,11,0.12); border: 1px solid var(--yellow); color: var(--yellow); }
+
+/* RESULT */
+.result-box {
+  background: var(--card); border: 1px solid var(--border);
+  border-radius: 22px; padding: 2rem; text-align: center; display: none;
+}
+.result-box.show { display: block; animation: fadeUp 0.4s ease; }
+.score-circle {
+  width: 110px; height: 110px; border-radius: 50%;
+  margin: 0 auto 1.2rem; display: flex; align-items: center; justify-content: center;
+  font-size: 1.8rem; font-weight: 900; font-family: 'Space Mono', monospace;
+  border: 4px solid;
+}
+.score-circle.great { border-color: var(--green); color: var(--green); background: rgba(16,185,129,0.1); }
+.score-circle.ok { border-color: var(--yellow); color: var(--yellow); background: rgba(245,158,11,0.1); }
+.score-circle.bad { border-color: var(--red); color: var(--red); background: rgba(239,68,68,0.1); }
+.result-msg { font-size: 1.3rem; font-weight: 900; }
+.result-sub { color: var(--muted); margin: 0.5rem 0 1.5rem; font-size: 0.9rem; }
+.wrong-list { text-align: right; margin-top: 1.2rem; }
+.wrong-list h4 { color: var(--red); margin-bottom: 0.6rem; }
+.wi {
+  padding: 0.7rem 0.9rem; margin-bottom: 0.4rem;
+  background: rgba(239,68,68,0.07); border: 1px solid rgba(239,68,68,0.2);
+  border-radius: 10px; font-size: 0.83rem; line-height: 1.6;
+}
+.wi .en { color: var(--accent); font-family: 'Space Mono', monospace; direction: ltr; display: inline-block; font-size: 0.78rem; }
+.wi .correct-ans { color: var(--green); font-size: 0.82rem; }
+
+/* ========== DICTIONARY ========== */
+.dict-input {
+  width: 100%; padding: 11px 14px;
+  background: var(--card); border: 2px solid var(--border);
+  border-radius: 12px; color: var(--text); font-family: 'Tajawal', sans-serif;
+  font-size: 0.95rem; outline: none; margin-bottom: 1rem; transition: border-color 0.2s;
+}
+.dict-input:focus { border-color: var(--accent); }
+.dict-input::placeholder { color: var(--muted); }
+
+.dict-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 0.8rem; }
+.dcard {
+  background: var(--card); border: 1px solid var(--border);
+  border-radius: 14px; padding: 1rem; transition: box-shadow 0.2s;
+}
+.dcard:hover { box-shadow: 0 4px 20px rgba(0,0,0,0.3); }
+.d-en { font-size: 0.92rem; font-weight: 700; color: var(--accent); font-family: 'Space Mono', monospace; direction: ltr; margin-bottom: 3px; }
+.d-pron { font-size: 0.75rem; color: var(--yellow); margin-bottom: 5px; }
+.d-ar { font-size: 0.95rem; font-weight: 700; margin-bottom: 3px; }
+.d-meaning { font-size: 0.78rem; color: var(--muted); line-height: 1.5; }
+.d-cat { display: inline-block; margin-top: 6px; padding: 2px 8px; border-radius: 20px; font-size: 0.68rem; font-weight: 700; }
+
+/* SENTENCES section */
+.sent-card {
+  background: var(--card); border: 1px solid var(--border);
+  border-radius: 14px; padding: 1.1rem; margin-bottom: 0.8rem;
+}
+.sent-en { font-size: 0.9rem; direction: ltr; color: var(--accent); line-height: 1.6; margin-bottom: 6px; font-family: 'Space Mono', monospace; }
+.sent-ar { font-size: 0.92rem; color: var(--text); line-height: 1.6; }
+.sent-src { font-size: 0.7rem; color: var(--muted); margin-top: 4px; }
+
+/* PROGRESS */
+.prog-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 0.8rem; margin-bottom: 1.5rem; }
+.p-card { background: var(--card); border: 1px solid var(--border); border-radius: 14px; padding: 1.1rem; text-align: center; }
+.p-val { font-size: 1.6rem; font-weight: 900; font-family: 'Space Mono', monospace; }
+.p-lbl { font-size: 0.75rem; color: var(--muted); margin-top: 3px; }
+.known-chips { margin-top: 0.5rem; }
+.k-chip {
+  display: inline-block; margin: 0.25rem;
+  padding: 4px 12px; border-radius: 20px;
+  background: rgba(16,185,129,0.12); border: 1px solid rgba(16,185,129,0.3);
+  color: var(--green); font-size: 0.8rem;
+}
+
+/* TOAST */
+.toast {
+  position: fixed; bottom: 18px; left: 50%; transform: translateX(-50%) translateY(80px);
+  background: var(--card); border: 1px solid var(--border);
+  padding: 10px 22px; border-radius: 12px;
+  font-size: 0.9rem; font-weight: 700; transition: transform 0.3s;
+  z-index: 9999; pointer-events: none;
+}
+.toast.show { transform: translateX(-50%) translateY(0); }
+.toast.g { border-color: var(--green); color: var(--green); }
+.toast.y { border-color: var(--yellow); color: var(--yellow); }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo"><span>GIS</span> تعلم</div>
+  <div class="xp-box">
+    <span class="xp-val" id="xpVal">0</span>
+    <span style="font-size:0.75rem;color:var(--muted)">نقطة ⭐</span>
+  </div>
+</header>
+
+<nav>
+  <button class="tab active" onclick="go('flashcards',this)">🃏 بطاقات</button>
+  <button class="tab" onclick="go('quiz',this)">📝 اختبار</button>
+  <button class="tab" onclick="go('sentences',this)">📄 جمل وفقرات</button>
+  <button class="tab" onclick="go('dictionary',this)">📖 قاموس</button>
+  <button class="tab" onclick="go('progress',this)">📊 تقدمي</button>
+</nav>
+
+<main>
+
+<!-- ======= FLASHCARDS ======= -->
+<div class="section active" id="flashcards">
+  <div class="sec-title">🃏 بطاقات <span>التعلم</span></div>
+  <div class="sec-sub">اضغط على البطاقة عشان تشوف الترجمة والنطق</div>
+
+  <div class="pills" id="fcCatPills"></div>
+
+  <div class="fc-meta">
+    <div class="fc-type-toggle">
+      <button class="type-pill active" id="tpWords" onclick="setFcType('words',this)">كلمات</button>
+      <button class="type-pill" id="tpSents" onclick="setFcType('sents',this)">جمل</button>
+    </div>
+    <div class="fc-counter" id="fcCounter">1 / 1</div>
+  </div>
+
+  <div class="flashcard-wrap">
+    <div class="flashcard" id="fcCard" onclick="flipCard()">
+      <div class="face front">
+        <div class="face-tag">اضغط للترجمة</div>
+        <div class="main-text" id="fcFront">—</div>
+        <div class="flip-hint">👆 اضغط عشان تشوف الإجابة</div>
+      </div>
+      <div class="face back">
+        <div class="face-tag">✦ الإجابة</div>
+        <div class="main-text en" id="fcBack">—</div>
+        <div class="pron-badge" id="fcPron" style="display:none"></div>
+        <div class="meaning-text" id="fcMeaning"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="fc-actions">
+    <button class="btn red" onclick="markCard(false)">❌ مش عارفها</button>
+    <button class="btn" onclick="prevCard()">◀ سابق</button>
+    <button class="btn" onclick="nextCard()">تالي ▶</button>
+    <button class="btn green" onclick="markCard(true)">✅ عارفها</button>
+  </div>
+</div>
+
+<!-- ======= QUIZ ======= -->
+<div class="section" id="quiz">
+  <div class="sec-title">📝 <span>اختبار</span> نفسك</div>
+  <div class="sec-sub">اختار النوع وابدأ — هتاخد نتيجة من 10</div>
+
+  <div id="quizSetup">
+    <div class="quiz-config">
+      <h3>نوع الاختبار:</h3>
+      <div class="config-row">
+        <button class="cfg-btn active" id="mAE" onclick="setCfg('mode','ar-en',this)">🇸🇦➜🇬🇧 عربي → إنجليزي</button>
+        <button class="cfg-btn" id="mEA" onclick="setCfg('mode','en-ar',this)">🇬🇧➜🇸🇦 إنجليزي → عربي</button>
+        <button class="cfg-btn" id="mSent" onclick="setCfg('mode','sent',this)">📄 ترجمة جمل</button>
+      </div>
+      <h3 style="margin-top:0.8rem">المحتوى:</h3>
+      <div class="config-row">
+        <button class="cfg-btn active" id="cAll" onclick="setCfg('cat','الكل',this)">الكل</button>
+        <button class="cfg-btn" id="cDef" onclick="setCfg('cat','تعريفات',this)">تعريفات</button>
+        <button class="cfg-btn" id="cComp" onclick="setCfg('cat','مكونات',this)">مكونات</button>
+        <button class="cfg-btn" id="cData" onclick="setCfg('cat','بيانات',this)">بيانات</button>
+        <button class="cfg-btn" id="cApp" onclick="setCfg('cat','تطبيقات',this)">تطبيقات</button>
+        <button class="cfg-btn" id="cFn" onclick="setCfg('cat','وظائف',this)">وظائف</button>
+      </div>
+    </div>
+    <button class="btn primary" style="width:100%;padding:1rem;font-size:1rem" onclick="startQuiz()">▶ ابدأ الاختبار (10 أسئلة)</button>
+  </div>
+
+  <div id="quizArea" style="display:none">
+    <div class="q-progress-wrap">
+      <div class="q-prog-bar"><div class="q-prog-fill" id="qFill" style="width:0%"></div></div>
+      <div class="q-prog-label" id="qLabel">0 / 10</div>
+    </div>
+    <div class="q-card">
+      <div class="q-badge ae" id="qBadge"></div>
+      <div class="q-text" id="qText"></div>
+      <div class="q-sub" id="qSub"></div>
+    </div>
+    <div class="options" id="opts"></div>
+    <div class="feedback" id="fb"></div>
+    <button class="btn primary" id="nextBtn" style="display:none;width:100%;padding:0.9rem" onclick="nextQ()">التالي ▶</button>
+  </div>
+
+  <div class="result-box" id="resultBox">
+    <div class="score-circle" id="scoreCircle"></div>
+    <div class="result-msg" id="rMsg"></div>
+    <div class="result-sub" id="rSub"></div>
+    <button class="btn primary" onclick="retryQuiz()" style="padding:10px 30px">🔄 حاول تاني</button>
+    <div class="wrong-list" id="wrongList"></div>
+  </div>
+</div>
+
+<!-- ======= SENTENCES ======= -->
+<div class="section" id="sentences">
+  <div class="sec-title">📄 جمل <span>وفقرات</span></div>
+  <div class="sec-sub">كل الجمل والفقرات من الـ PDF مترجمة</div>
+  <div class="pills" id="sentPills"></div>
+  <div id="sentList"></div>
+</div>
+
+<!-- ======= DICTIONARY ======= -->
+<div class="section" id="dictionary">
+  <div class="sec-title">📖 <span>قاموس</span> GIS</div>
+  <div class="sec-sub">ابحث بالعربي أو الإنجليزي</div>
+  <input class="dict-input" type="text" placeholder="🔍 ابحث... مثلاً: خريطة أو map أو spatial" id="dictQ" oninput="renderDict()">
+  <div class="pills" id="dictPills"></div>
+  <div class="dict-grid" id="dictGrid"></div>
+</div>
+
+<!-- ======= PROGRESS ======= -->
+<div class="section" id="progress">
+  <div class="sec-title">📊 <span>تقدمي</span></div>
+  <div class="sec-sub">شوف إيه اللي اتعلمته</div>
+  <div class="prog-grid">
+    <div class="p-card"><div class="p-val" style="color:var(--accent)" id="pTotal">0</div><div class="p-lbl">إجمالي الكلمات</div></div>
+    <div class="p-card"><div class="p-val" style="color:var(--green)" id="pKnown">0</div><div class="p-lbl">اتعلمتها ✅</div></div>
+    <div class="p-card"><div class="p-val" style="color:var(--yellow)" id="pPct">0%</div><div class="p-lbl">نسبة الإتقان</div></div>
+    <div class="p-card"><div class="p-val" style="color:var(--purple)" id="pQs">0</div><div class="p-lbl">أسئلة أجبتها</div></div>
+    <div class="p-card"><div class="p-val" style="color:var(--yellow)" id="pBest">0%</div><div class="p-lbl">أعلى نتيجة</div></div>
+  </div>
+  <h3 style="font-size:0.95rem;margin-bottom:0.6rem">✅ الكلمات اللي اتعلمتها:</h3>
+  <div class="known-chips" id="knownChips"></div>
+  <br>
+  <button class="btn red" onclick="resetAll()">🗑️ مسح كل التقدم</button>
+</div>
+
+</main>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ================================================================
+//  DATA
+// ================================================================
+const words = [
+  // تعريفات
+  {en:"Geographic Information System",pron:"جيوغرافيك إنفورميشن سيستم",ar:"نظام المعلومات الجغرافية",meaning:"نظام حاسوبي لجمع وتحليل وعرض البيانات المرتبطة بمواقع جغرافية على الأرض",cat:"تعريفات"},
+  {en:"GIS",pron:"جي آي إس",ar:"اختصار نظام المعلومات الجغرافية",meaning:"الاختصار الشهير لـ Geographic Information System",cat:"تعريفات"},
+  {en:"Geography",pron:"جيوغرافي",ar:"الجغرافيا",meaning:"علم دراسة سطح الأرض وظواهرها الطبيعية والبشرية",cat:"تعريفات"},
+  {en:"Spatial identity",pron:"سباشيال آيدينتيتي",ar:"الهوية المكانية",meaning:"تحديد موضع كيان ما على سطح الأرض أو تحته أو فوقه",cat:"تعريفات"},
+  {en:"Decision-making",pron:"ديسيجن ميكنج",ar:"اتخاذ القرار",meaning:"عملية اختيار أفضل الحلول بناءً على المعلومات المتاحة",cat:"تعريفات"},
+  {en:"Information",pron:"إنفورميشن",ar:"المعلومات",meaning:"بيانات تم تفسيرها وتحليلها لتصبح مفيدة في اتخاذ القرار",cat:"تعريفات"},
+  {en:"System",pron:"سيستم",ar:"النظام",meaning:"مجموعة متكاملة من الموظفين والأجهزة والإجراءات لإنتاج معلومات",cat:"تعريفات"},
+  {en:"Geo-referenced data",pron:"جيو-ريفرنسد داتا",ar:"البيانات المرجّعة جغرافياً",meaning:"بيانات مرتبطة بإحداثيات جغرافية حقيقية على الأرض",cat:"تعريفات"},
+  {en:"Computerized system",pron:"كومبيوتيرايزد سيستم",ar:"النظام الحاسوبي / الرقمي",meaning:"نظام يعتمد على الحاسوب في معالجة البيانات وإدارتها",cat:"تعريفات"},
+  {en:"Capture",pron:"كابتشر",ar:"التقاط / جمع البيانات",meaning:"الحصول على البيانات وإدخالها في النظام",cat:"تعريفات"},
+  {en:"Retrieval",pron:"ريتريفال",ar:"الاسترجاع",meaning:"استدعاء البيانات من قاعدة البيانات عند الحاجة",cat:"تعريفات"},
+  {en:"Display",pron:"ديسبلاي",ar:"العرض",meaning:"تقديم البيانات والمعلومات بشكل مرئي للمستخدم",cat:"تعريفات"},
+  {en:"Manipulation",pron:"مانيبيوليشن",ar:"المعالجة",meaning:"تحويل البيانات وتعديلها للحصول على نتائج مفيدة",cat:"تعريفات"},
+
+  // مكونات
+  {en:"Hardware",pron:"هارد وير",ar:"الأجهزة والمعدات",meaning:"المكونات المادية للحاسوب والأجهزة الطرفية كالسكانر والطابعة",cat:"مكونات"},
+  {en:"Software",pron:"سوفت وير",ar:"البرامج",meaning:"التطبيقات والبرامج المستخدمة في تشغيل نظام GIS",cat:"مكونات"},
+  {en:"Data",pron:"داتا",ar:"البيانات",meaning:"المعلومات الخام التي يعالجها نظام GIS",cat:"مكونات"},
+  {en:"Personnel",pron:"بيرسونيل",ar:"الكوادر البشرية",meaning:"الأشخاص الذين يديرون ويشغلون نظام GIS",cat:"مكونات"},
+  {en:"Methods",pron:"ميثودز",ar:"الأساليب والطرق",meaning:"النماذج والإجراءات التشغيلية الخاصة بكل مؤسسة",cat:"مكونات"},
+  {en:"Scanner",pron:"سكانر",ar:"الماسح الضوئي",meaning:"جهاز يحوّل الخرائط الورقية إلى صور رقمية للمعالجة",cat:"مكونات"},
+  {en:"Digitizer",pron:"ديجيتايزر",ar:"جهاز الرقمنة",meaning:"لوحة مسطحة تُستخدم لتحويل الخرائط إلى بيانات رقمية",cat:"مكونات"},
+  {en:"Plotter",pron:"بلوتر",ar:"جهاز الرسم الآلي",meaning:"جهاز إخراج يطبع الخرائط بدقة عالية",cat:"مكونات"},
+  {en:"Database Management System",pron:"داتا بيس مانجمنت سيستم",ar:"نظام إدارة قواعد البيانات (DBMS)",meaning:"برنامج لتنظيم البيانات وتخزينها واسترجاعها بكفاءة",cat:"مكونات"},
+  {en:"GUI",pron:"جي يو آي",ar:"واجهة المستخدم الرسومية",meaning:"الواجهة البصرية التي تتيح للمستخدم التفاعل مع البرنامج بسهولة",cat:"مكونات"},
+  {en:"Web server",pron:"ويب سيرفر",ar:"خادم الإنترنت",meaning:"حاسوب يخزن ويوزع بيانات GIS عبر شبكة الإنترنت",cat:"مكونات"},
+  {en:"ArcGIS",pron:"آرك جي آي إس",ar:"برنامج ArcGIS",meaning:"أشهر برامج GIS في العالم، من تطوير شركة ESRI",cat:"مكونات"},
+  {en:"QGIS",pron:"كيو جي آي إس",ar:"برنامج QGIS",meaning:"برنامج GIS مجاني ومفتوح المصدر متاح للجميع",cat:"مكونات"},
+  {en:"ESRI",pron:"إي إس آر آي",ar:"شركة ESRI",meaning:"أكبر شركة في العالم متخصصة في تطوير برامج نظم المعلومات الجغرافية",cat:"مكونات"},
+  {en:"Open source",pron:"أوبن سورس",ar:"مفتوح المصدر",meaning:"برامج يمكن لأي شخص استخدامها وتعديلها مجاناً",cat:"مكونات"},
+
+  // بيانات
+  {en:"Spatial data",pron:"سباشيال داتا",ar:"البيانات المكانية",meaning:"بيانات تخبرنا أين تقع الأشياء على سطح الأرض",cat:"بيانات"},
+  {en:"Attribute data",pron:"أتريبيوت داتا",ar:"البيانات الوصفية",meaning:"بيانات تخبرنا ما هي طبيعة وخصائص الأشياء",cat:"بيانات"},
+  {en:"Vector data",pron:"فيكتور داتا",ar:"البيانات المتجهة",meaning:"بيانات تمثل المعالم الجغرافية بنقاط وخطوط ومضلعات",cat:"بيانات"},
+  {en:"Raster data",pron:"راستر داتا",ar:"البيانات الشبكية",meaning:"بيانات في شكل خلايا أو بكسلات تغطي مساحة جغرافية",cat:"بيانات"},
+  {en:"Point",pron:"بوينت",ar:"نقطة",meaning:"أصغر وحدة في البيانات المتجهة، تمثل موقعاً محدداً كمدينة أو بئر",cat:"بيانات"},
+  {en:"Line",pron:"لاين",ar:"خط",meaning:"سلسلة نقاط متصلة تمثل معالم خطية كالطرق والأنهار",cat:"بيانات"},
+  {en:"Polygon",pron:"بوليغون",ar:"مضلع",meaning:"شكل مغلق يمثل مناطق كالدول والمدن والبحيرات",cat:"بيانات"},
+  {en:"Layer",pron:"ليير",ar:"الطبقة",meaning:"مجموعة من البيانات المتشابهة مجمعة في طبقة واحدة قابلة للتشغيل",cat:"بيانات"},
+  {en:"Pixel",pron:"بيكسل",ar:"بكسل",meaning:"أصغر وحدة في البيانات الشبكية، تحمل قيمة رقمية واحدة",cat:"بيانات"},
+  {en:"Digital Elevation Model",pron:"ديجيتال إيليفيشن موديل",ar:"نموذج الارتفاع الرقمي (DEM)",meaning:"تمثيل رقمي لتضاريس سطح الأرض ومستويات الارتفاع",cat:"بيانات"},
+  {en:"Digitizing",pron:"ديجيتايزنج",ar:"الرقمنة",meaning:"تحويل الخرائط الورقية إلى بيانات رقمية عبر التتبع على الشاشة أو الجهاز",cat:"بيانات"},
+  {en:"Coordinate",pron:"كوأوردينيت",ar:"الإحداثي",meaning:"رقم يحدد موقع نقطة على الخريطة (خط الطول والعرض)",cat:"بيانات"},
+  {en:"Longitude",pron:"لونجيتيود",ar:"خط الطول",meaning:"الإحداثي الأفقي الذي يحدد الموضع شرقاً أو غرباً من خط غرينتش",cat:"بيانات"},
+  {en:"Latitude",pron:"لاتيتيود",ar:"خط العرض",meaning:"الإحداثي العمودي الذي يحدد الموضع شمالاً أو جنوباً من خط الاستواء",cat:"بيانات"},
+  {en:"Topology",pron:"توبولوجي",ar:"الطوبولوجيا",meaning:"العلاقات المكانية بين المعالم الجغرافية كالجوار والتقاطع",cat:"بيانات"},
+  {en:"Categorical raster",pron:"كاتيغوريكال راستر",ar:"البيانات الشبكية الفئوية",meaning:"بيانات شبكية حيث كل خلية تنتمي لفئة محددة كأنواع التربة",cat:"بيانات"},
+
+  // تقنيات
+  {en:"Remote sensing",pron:"ريموت سينسنج",ar:"الاستشعار عن بعد",meaning:"تقنية الحصول على معلومات عن الأرض من خلال الأقمار الصناعية دون تلامس مباشر",cat:"تقنيات"},
+  {en:"GPS",pron:"جي بي إس",ar:"نظام تحديد المواقع",meaning:"نظام ملاحة فضائي يحدد الإحداثيات الجغرافية بدقة سنتيمترية",cat:"تقنيات"},
+  {en:"GNSS",pron:"جي إن إس إس",ar:"نظام الملاحة الفضائي العالمي",meaning:"المنظومة الكاملة لأنظمة تحديد المواقع الفضائية حول العالم",cat:"تقنيات"},
+  {en:"Satellite imagery",pron:"ساتيلايت إيمجري",ar:"صور الأقمار الصناعية",meaning:"صور للأرض مأخوذة من الأقمار الصناعية في الفضاء",cat:"تقنيات"},
+  {en:"LiDAR",pron:"لايدار",ar:"تقنية LiDAR",meaning:"تقنية استشعار بالليزر لقياس المسافات وإنشاء نماذج ثلاثية الأبعاد",cat:"تقنيات"},
+  {en:"Landsat",pron:"لاندسات",ar:"قمر لاندسات الصناعي",meaning:"سلسلة أقمار صناعية أمريكية لرصد سطح الأرض",cat:"تقنيات"},
+
+  // تاريخ
+  {en:"Epidemiology",pron:"إبيديميولوجي",ar:"علم الأوبئة",meaning:"علم دراسة انتشار الأمراض وأسبابها في المجتمعات",cat:"تاريخ"},
+  {en:"Cartography",pron:"كارتوغرافي",ar:"علم رسم الخرائط",meaning:"العلم المتعلق بإنشاء الخرائط وتصميمها بدقة",cat:"تاريخ"},
+  {en:"Canadian Geographic System",pron:"كانيديان جيوغرافيك سيستم",ar:"النظام الجغرافي الكندي (CGIS)",meaning:"أول نظام GIS حقيقي في التاريخ، طوّره روجر توملينسون في الستينيات",cat:"تاريخ"},
+  {en:"Roger Tomlinson",pron:"روجر توملينسون",ar:"روجر توملينسون",meaning:"مؤسس نظام GIS الحديث، يُعرف بـ'أبو GIS'",cat:"تاريخ"},
+  {en:"John Snow",pron:"جون سنو",ar:"الدكتور جون سنو",meaning:"الطبيب البريطاني الذي استخدم تحليل الخرائط لتتبع وباء الكوليرا 1854",cat:"تاريخ"},
+  {en:"Mainframe computer",pron:"مين فريم كومبيوتر",ar:"الحاسوب المركزي الضخم",meaning:"أجهزة الحاسوب الكبيرة التي استُخدمت في المراحل الأولى من GIS",cat:"تاريخ"},
+  {en:"ARC/INFO",pron:"آرك إنفو",ar:"برنامج ARC/INFO",meaning:"أول برنامج GIS تجاري ناجح، أطلقته ESRI عام 1982",cat:"تاريخ"},
+
+  // تطبيقات
+  {en:"Navigation",pron:"نافيغيشن",ar:"الملاحة والتنقل",meaning:"استخدام GIS لتحديد المسارات والطرق المثلى للتنقل",cat:"تطبيقات"},
+  {en:"Urban planning",pron:"أربن بلانينج",ar:"التخطيط العمراني",meaning:"استخدام GIS في تخطيط المدن والأحياء السكنية",cat:"تطبيقات"},
+  {en:"Geology",pron:"جيولوجي",ar:"الجيولوجيا",meaning:"علم دراسة طبقات الأرض والصخور وتحليل بياناتها بـ GIS",cat:"تطبيقات"},
+  {en:"Forestry management",pron:"فوريستري مانجمنت",ar:"إدارة الغابات",meaning:"استخدام GIS في تقييم ومراقبة الموارد الحرجية",cat:"تطبيقات"},
+  {en:"Emergency services",pron:"إيمرجنسي سيرفيسز",ar:"خدمات الطوارئ",meaning:"استخدام GIS في الاستجابة السريعة للحرائق والكوارث",cat:"تطبيقات"},
+  {en:"Traffic density",pron:"ترافيك دينسيتي",ar:"كثافة المرور",meaning:"دراسة وتحليل تدفق المركبات على الطرق باستخدام GIS",cat:"تطبيقات"},
+  {en:"Earthquake",pron:"أيرث كويك",ar:"الزلزال",meaning:"هزة أرضية تُدرس وتُرصد عالمياً باستخدام أنظمة GIS",cat:"تطبيقات"},
+  {en:"Tourism",pron:"توريزم",ar:"السياحة",meaning:"استخدام GIS في تخطيط وتحسين المناطق السياحية",cat:"تطبيقات"},
+  {en:"Water quality",pron:"ووتر كواليتي",ar:"جودة المياه",meaning:"مراقبة وتحليل خصائص المياه وتلوثها بالاستعانة بـ GIS",cat:"تطبيقات"},
+  {en:"Air emissions",pron:"إير إميشنز",ar:"الانبعاثات الجوية",meaning:"نمذجة وتتبع انتشار ملوثات الهواء باستخدام GIS",cat:"تطبيقات"},
+  {en:"Land use",pron:"لاند يوز",ar:"استخدام الأرض",meaning:"تصنيف الأراضي حسب طبيعة استخدامها (سكني، زراعي، صناعي...)",cat:"تطبيقات"},
+  {en:"Census",pron:"سينسيس",ar:"التعداد السكاني",meaning:"إحصاء السكان وتحليل بياناتهم مكانياً باستخدام GIS",cat:"تطبيقات"},
+  {en:"Infrastructure",pron:"إنفراستركتشر",ar:"البنية التحتية",meaning:"إدارة الطرق والمياه والكهرباء والصرف الصحي بـ GIS",cat:"تطبيقات"},
+  {en:"Tax management",pron:"تاكس مانجمنت",ar:"إدارة الضرائب",meaning:"ربط خرائط الملكية بسجلات الضرائب لتحسين التحصيل",cat:"تطبيقات"},
+  {en:"Oil spill",pron:"أويل سبيل",ar:"التسرب النفطي",meaning:"تتبع ورصد تسربات النفط في البحار والمحيطات بـ GIS",cat:"تطبيقات"},
+  {en:"Population planning",pron:"بوبيوليشن بلانينج",ar:"التخطيط السكاني",meaning:"دراسة التوزيع السكاني والكثافة وتخطيط الخدمات",cat:"تطبيقات"},
+  {en:"Regional planning",pron:"ريجيونال بلانينج",ar:"التخطيط الإقليمي",meaning:"تخطيط المناطق والأقاليم وتحليل التأثيرات الإقليمية",cat:"تطبيقات"},
+
+  // وظائف
+  {en:"Spatial analysis",pron:"سباشيال أناليسيس",ar:"التحليل المكاني",meaning:"دراسة وتحليل الأنماط والعلاقات الجغرافية في البيانات",cat:"وظائف"},
+  {en:"Overlay",pron:"أوفرليه",ar:"التراكب / التضافر",meaning:"دمج طبقتين أو أكثر من البيانات للحصول على معلومات جديدة",cat:"وظائف"},
+  {en:"Buffer",pron:"بافر",ar:"منطقة الحماية / الحزام",meaning:"منطقة دائرية أو خطية تُنشأ على مسافة محددة حول معلم جغرافي",cat:"وظائف"},
+  {en:"Query",pron:"كويري",ar:"الاستعلام",meaning:"طلب بيانات محددة من قاعدة البيانات وفق شروط معينة",cat:"وظائف"},
+  {en:"Visualization",pron:"فيجواليزيشن",ar:"التصور / العرض المرئي",meaning:"عرض البيانات الجغرافية بشكل مرئي واضح وسهل الفهم",cat:"وظائف"},
+  {en:"Interpolation",pron:"إنتيربوليشن",ar:"الاستيفاء",meaning:"تقدير قيم مجهولة بناءً على قيم نقاط معروفة حولها",cat:"وظائف"},
+  {en:"Projection",pron:"بروجيكشن",ar:"الإسقاط الجغرافي",meaning:"طريقة رياضية لتحويل الكرة الأرضية إلى خريطة مستوية",cat:"وظائف"},
+  {en:"Scale",pron:"سكيل",ar:"المقياس",meaning:"نسبة المسافة على الخريطة إلى المسافة الحقيقية على الأرض",cat:"وظائف"},
+  {en:"Map overlay",pron:"ماب أوفرليه",ar:"تراكب الخرائط",meaning:"إنتاج خريطة جديدة من خلال دمج عدة طبقات من البيانات",cat:"وظائف"},
+  {en:"Thematic mapping",pron:"ثيماتيك مابنج",ar:"الخرائط الموضوعية",meaning:"خرائط تُظهر موضوعاً بعينه كالكثافة السكانية أو هطول الأمطار",cat:"وظائف"},
+  {en:"Statistical analysis",pron:"ستاتيستيكال أناليسيس",ar:"التحليل الإحصائي",meaning:"تطبيق الأساليب الإحصائية على البيانات الجغرافية",cat:"وظائف"},
+  {en:"Structure conversion",pron:"ستركتشر كونفيرجن",ar:"التحويل الهيكلي",meaning:"تحويل البيانات من صيغة إلى أخرى مثلاً من متجه إلى شبكي",cat:"وظائف"},
+  {en:"Proximity",pron:"بروكسيميتي",ar:"القرب المكاني",meaning:"تحليل العلاقات المكانية بناءً على المسافة بين المعالم",cat:"وظائف"},
+
+  // فوائد
+  {en:"Efficiency",pron:"إفيشنسي",ar:"الكفاءة",meaning:"إنجاز العمل بأقل وقت وتكلفة وجهد ممكن",cat:"فوائد"},
+  {en:"Accuracy",pron:"أكيوراسي",ar:"الدقة",meaning:"مدى تطابق البيانات والنتائج مع الواقع الحقيقي",cat:"فوائد"},
+  {en:"Integration",pron:"إنتيغريشن",ar:"التكامل",meaning:"دمج أنواع مختلفة من البيانات في بيئة عمل موحدة",cat:"فوائد"},
+  {en:"Communication",pron:"كوميونيكيشن",ar:"التواصل",meaning:"تحسين التواصل بين الفرق والجهات المختلفة عبر الخرائط",cat:"فوائد"},
+  {en:"Cost savings",pron:"كوست سيفنجز",ar:"توفير التكاليف",meaning:"تقليل النفقات عبر أتمتة العمليات وتحسين الكفاءة",cat:"فوائد"},
+
+  // تعريفات إضافية
+  {en:"Perspective",pron:"بيرسبيكتيف",ar:"المنظور / وجهة النظر",meaning:"زاوية رؤية مختلفة لتعريف نظام المعلومات الجغرافية",cat:"تعريفات"},
+  {en:"Disciplinary origin",pron:"ديسيبلينيري أوريجن",ar:"الأصل التخصصي",meaning:"الخلفية العلمية التي منها جاء تعريف معين",cat:"تعريفات"},
+  {en:"Decision support system",pron:"ديسيجن سابورت سيستم",ar:"نظام دعم القرار",meaning:"نظام يساعد المختصين في اتخاذ قرارات مبنية على بيانات ومعلومات",cat:"تعريفات"},
+  {en:"Assembling",pron:"أسيمبلنج",ar:"التجميع",meaning:"عملية جمع وتجميع البيانات الجغرافية في مكان واحد",cat:"تعريفات"},
+  {en:"Geo-referenced",pron:"جيو ريفرنسد",ar:"مرتبط بإحداثيات جغرافية",meaning:"بيانات أو معلومات مرتبطة بموقع جغرافي محدد على الأرض",cat:"تعريفات"},
+  {en:"Land attributes",pron:"لاند أتريبيوتس",ar:"خصائص الأرض",meaning:"السمات والصفات الطبيعية والبشرية المرتبطة بقطعة أرض",cat:"تعريفات"},
+  {en:"Environmental features",pron:"إنفايرونمنتال فيتشرز",ar:"الخصائص البيئية",meaning:"العناصر الطبيعية كالغابات والأنهار والجبال التي يدرسها GIS",cat:"تعريفات"},
+  {en:"Institutional arrangements",pron:"إنستيتيوشونال أرينجمنتس",ar:"الترتيبات المؤسسية",meaning:"السياسات والأنظمة التنظيمية التي تحكم استخدام نظام GIS",cat:"تعريفات"},
+  {en:"Disseminating",pron:"ديسيمينيتنج",ar:"نشر / توزيع المعلومات",meaning:"توزيع البيانات والمعلومات الجغرافية للمستخدمين المختلفين",cat:"تعريفات"},
+  {en:"Modeling",pron:"موديلنج",ar:"النمذجة",meaning:"بناء تمثيل رياضي أو رقمي لظاهرة ما لدراستها وتحليلها",cat:"تعريفات"},
+  {en:"Expertise",pron:"إكسبرتيز",ar:"الخبرة التخصصية",meaning:"المهارات والمعرفة التقنية للمتخصصين في تشغيل وتطوير GIS",cat:"تعريفات"},
+  {en:"Spatially referenced",pron:"سباشيالي ريفرنسد",ar:"مرجّع مكانياً",meaning:"بيانات مرتبطة بموقع محدد على الأرض يمكن تمثيله على خريطة",cat:"تعريفات"},
+
+  // تاريخ إضافي
+  {en:"Paper mapping",pron:"بيبر مابنج",ar:"رسم الخرائط الورقية",meaning:"الطريقة التقليدية لرسم الخرائط قبل الحاسوب",cat:"تاريخ"},
+  {en:"Cholera",pron:"كوليرا",ar:"مرض الكوليرا",meaning:"وباء انتشر في لندن عام 1854 وكان سبباً في بدايات تحليل GIS",cat:"تاريخ"},
+  {en:"Outbreak",pron:"أوتبريك",ar:"تفشي المرض",meaning:"انتشار مرض فجأة في منطقة جغرافية محددة",cat:"تاريخ"},
+  {en:"Public health safety",pron:"بابليك هيلث سيفتي",ar:"السلامة الصحية العامة",meaning:"حماية صحة المجتمع من الأمراض والأوبئة",cat:"تاريخ"},
+  {en:"Sieve mapping",pron:"سيف مابنج",ar:"خرائط الغربلة",meaning:"تقنية قديمة لتراكب طبقات خرائط شفافة لتحليل مكاني",cat:"تاريخ"},
+  {en:"Line printers",pron:"لاين برينترز",ar:"الطابعات السطرية",meaning:"أجهزة طباعة قديمة كانت تُستخدم لإخراج خرائط مبسطة",cat:"تاريخ"},
+  {en:"Canadian Land Inventory",pron:"كانيدين لاند إنفنتري",ar:"جرد الأراضي الكندية",meaning:"مشروع كندي ضخم في 1964 لتصنيف الأراضي باستخدام GIS",cat:"تاريخ"},
+  {en:"Soil drainage",pron:"سويل درينيج",ar:"صرف التربة",meaning:"قدرة التربة على إزالة الماء الزائد، تُحلل في GIS لتحديد استخدام الأراضي",cat:"تاريخ"},
+  {en:"Land capability",pron:"لاند كابابيليتي",ar:"قدرة الأرض",meaning:"مدى صلاحية الأرض لأنواع محددة من الاستخدام كالزراعة أو السكن",cat:"تاريخ"},
+  {en:"Census Bureau",pron:"سينسس بيورو",ar:"مكتب التعداد السكاني",meaning:"الجهة الحكومية الأمريكية المسؤولة عن إحصاء السكان وبياناتهم",cat:"تاريخ"},
+  {en:"GBF-DIME",pron:"جي بي إف دايم",ar:"صيغة ملف البيانات الجغرافية",meaning:"تنسيق بيانات رقمي طورته أمريكا عام 1970 لإدخال بيانات التعداد السكاني",cat:"تاريخ"},
+  {en:"Choropleth mapping",pron:"كوروبليث مابنج",ar:"رسم خرائط الكثافة اللونية",meaning:"خرائط تستخدم ألواناً مختلفة لإظهار كثافة أو قيمة ظاهرة ما",cat:"تاريخ"},
+  {en:"Ordnance Survey",pron:"أوردننس سيرفي",ar:"مصلحة المساحة البريطانية",meaning:"الجهة الحكومية البريطانية لرسم الخرائط الطبوغرافية الرسمية",cat:"تاريخ"},
+  {en:"ODYSSEY GIS",pron:"أوديسي جي آي إس",ar:"نظام أوديسي الجغرافي",meaning:"أول نظام GIS متجهي طوّرته مختبر هارفارد في منتصف السبعينيات",cat:"تاريخ"},
+  {en:"Vector GIS",pron:"فيكتور جي آي إس",ar:"نظام GIS المتجهي",meaning:"نظام يمثل المعالم الجغرافية بنقاط وخطوط ومضلعات رياضية",cat:"تاريخ"},
+  {en:"Software commercialization",pron:"سوفت وير كومرشلايزيشن",ar:"تسويق البرمجيات تجارياً",meaning:"المرحلة التي أصبح فيها برنامج GIS منتجاً تجارياً يُباع في السوق",cat:"تاريخ"},
+  {en:"Open source explosion",pron:"أوبن سورس إكسبلوجن",ar:"انفجار المصدر المفتوح",meaning:"الانتشار الكبير لبرامج GIS المجانية مفتوحة المصدر منذ 2010",cat:"تاريخ"},
+  {en:"TIGER data",pron:"تايغر داتا",ar:"بيانات تايغر",meaning:"قاعدة بيانات أمريكية مجانية تحتوي بيانات جغرافية لكل أمريكا",cat:"تاريخ"},
+  {en:"ArcGIS Online",pron:"آرك جي آي إس أونلاين",ar:"منصة ArcGIS الإلكترونية",meaning:"منصة إلكترونية من ESRI لتخزين وعرض ومشاركة البيانات الجغرافية",cat:"تاريخ"},
+  {en:"Formative Years",pron:"فورميتيف ييرز",ar:"سنوات التأسيس",meaning:"المرحلة الأولى من تطوير GIS (1960-1980) حين وُضعت الأسس التقنية",cat:"تاريخ"},
+  {en:"Maturing Technology",pron:"ماتيورنج تيكنولوجي",ar:"نضج التقنية",meaning:"المرحلة الثانية من تطور GIS (1980-1990) حين تطورت الأنظمة والبرمجيات",cat:"تاريخ"},
+  {en:"GI Infrastructure",pron:"جي آي إنفراستركتشر",ar:"بنية المعلومات الجغرافية التحتية",meaning:"المرحلة الثالثة (منتصف التسعينيات-الآن) حين انتشر GIS على نطاق واسع",cat:"تاريخ"},
+  {en:"Proprietary software",pron:"بروبريتيري سوفت وير",ar:"برنامج مملوك / تجاري",meaning:"برنامج محمي بحقوق الملكية ولا يمكن تعديله بدون إذن الشركة المالكة",cat:"تاريخ"},
+  {en:"Geo-relational data",pron:"جيو ريليشونال داتا",ar:"البيانات الجغرافية العلائقية",meaning:"بيانات جغرافية منظمة في جداول مترابطة يمكن ربطها ببعضها",cat:"تاريخ"},
+  {en:"Harvard Laboratory",pron:"هارفارد لابورتوري",ar:"مختبر هارفارد للحوسبة الجغرافية",meaning:"معهد بحثي رائد في تطوير أنظمة GIS في السبعينيات",cat:"تاريخ"},
+  {en:"User Proliferation",pron:"يوزر بروليفيريشن",ar:"انتشار المستخدمين",meaning:"مرحلة 1990-2010 حين انتشر GIS بين الحكومات والشركات والمدارس",cat:"تاريخ"},
+
+  // مكونات إضافية
+  {en:"3-Tier architecture",pron:"ثري تير آركيتكتشر",ar:"الهندسة ثلاثية الطبقات",meaning:"تصميم نظام GIS على ثلاث طبقات: واجهة المستخدم، المنطق، وقاعدة البيانات",cat:"مكونات"},
+  {en:"Super computer",pron:"سوبر كومبيوتر",ar:"الحاسب العملاق",meaning:"أقوى أنواع الحاسبات المستخدمة في معالجة البيانات الجغرافية الضخمة",cat:"مكونات"},
+  {en:"TIFF",pron:"تيف",ar:"صيغة ملف TIFF",meaning:"صيغة ملف صورة عالية الجودة تُستخدم لتخزين الصور المسحوبة في GIS",cat:"مكونات"},
+  {en:"BMP",pron:"بي إم بي",ar:"صيغة ملف BMP",meaning:"صيغة ملف صورة غير مضغوطة تُستخدم في بعض برامج GIS",cat:"مكونات"},
+  {en:"JPG",pron:"جي بي جي",ar:"صيغة ملف JPG",meaning:"صيغة ملف صورة مضغوطة شائعة الاستخدام في الخرائط الرقمية",cat:"مكونات"},
+  {en:"Vectorisation",pron:"فيكتورايزيشن",ar:"التحويل إلى متجهات",meaning:"عملية تحويل الصور النقطية إلى رسومات متجهية دقيقة في GIS",cat:"مكونات"},
+  {en:"Digitizer board",pron:"ديجيتايزر بورد",ar:"لوح الرقمنة",meaning:"لوح مسطح خاص لتحويل عناصر الخريطة الورقية إلى بيانات رقمية",cat:"مكونات"},
+  {en:"MapInfo",pron:"ماب إنفو",ar:"برنامج MapInfo",meaning:"برنامج GIS شائع مناسب للأعمال الصغيرة وتحليل البيانات الجغرافية",cat:"مكونات"},
+  {en:"Global Mapper",pron:"غلوبال مابر",ar:"برنامج Global Mapper",meaning:"برنامج GIS اقتصادي لعرض وتحويل البيانات الجغرافية المختلفة",cat:"مكونات"},
+  {en:"AutoCAD Map",pron:"أوتو كاد ماب",ar:"برنامج AutoCAD Map",meaning:"إصدار AutoCAD المتخصص في البيانات الجغرافية، مناسب لمستخدمي AutoCAD",cat:"مكونات"},
+  {en:"Relational database",pron:"ريليشونال دايتابيس",ar:"قاعدة البيانات العلائقية",meaning:"نظام قاعدة بيانات ينظم البيانات في جداول مترابطة يمكن الاستعلام منها",cat:"مكونات"},
+  {en:"Spatial data clearinghouse",pron:"سباشيال داتا كليرنج هاوس",ar:"مستودع البيانات المكانية",meaning:"مركز إلكتروني لتخزين وتوزيع البيانات الجغرافية للمستخدمين",cat:"مكونات"},
+  {en:"System users",pron:"سيستم يوزرز",ar:"مستخدمو النظام",meaning:"المتخصصون الذين يديرون ويطورون نظام GIS من الداخل",cat:"مكونات"},
+  {en:"End users",pron:"إند يوزرز",ar:"المستخدمون النهائيون",meaning:"الأشخاص الذين يستخدمون GIS لأداء مهامهم اليومية",cat:"مكونات"},
+  {en:"Data generators",pron:"داتا جينيريترز",ar:"منتجو البيانات",meaning:"الجهات التي تنتج وتجمع البيانات الجغرافية الخام التي يستخدمها GIS",cat:"مكونات"},
+  {en:"Business rules",pron:"بيزنس رولز",ar:"قواعد العمل",meaning:"السياسات والإجراءات الخاصة بكل مؤسسة في كيفية استخدام نظام GIS",cat:"مكونات"},
+  {en:"Aerial photos",pron:"إيريال فوتوز",ar:"الصور الجوية",meaning:"صور تُلتقط من الطائرات لرسم خرائط دقيقة للأرض",cat:"مكونات"},
+  {en:"Secondary survey",pron:"سيكوندري سيرفي",ar:"البيانات الثانوية",meaning:"بيانات جُمعت مسبقاً من مصادر أخرى ولم تُجمع مباشرة من الميدان",cat:"مكونات"},
+  {en:"Non-spatial data",pron:"نون سباشيال داتا",ar:"البيانات غير المكانية",meaning:"بيانات وصفية تشرح خصائص الظاهرات مثل الأسماء والأعداد",cat:"مكونات"},
+  {en:"Tabular data",pron:"تابيولار داتا",ar:"البيانات الجدولية",meaning:"بيانات مرتبة في صفوف وأعمدة كجداول البيانات",cat:"مكونات"},
+  {en:"In-house data",pron:"إن هاوس داتا",ar:"البيانات الداخلية",meaning:"بيانات تجمعها المؤسسة بنفسها لاستخدامها في نظام GIS الخاص بها",cat:"مكونات"},
+  {en:"Commercial data provider",pron:"كومرشال داتا بروفايدر",ar:"مزوّد البيانات التجاري",meaning:"شركة متخصصة في بيع وتوزيع البيانات الجغرافية للمستخدمين",cat:"مكونات"},
+
+  // تطبيقات إضافية
+  {en:"Hydrographic data",pron:"هايدروغرافيك داتا",ar:"البيانات الهيدروغرافية",meaning:"بيانات تصف المسطحات المائية كالبحار والأنهار والموانئ",cat:"تطبيقات"},
+  {en:"Ferry paths",pron:"فيري باثس",ar:"مسارات العبّارات",meaning:"الطرق المائية التي تسلكها العبارات ويمكن تحديدها بدقة باستخدام GIS",cat:"تطبيقات"},
+  {en:"Coastal hazards",pron:"كوستال هازاردز",ar:"المخاطر الساحلية",meaning:"المواقع الخطرة على الشواطئ كالحطام والصخور التي يحددها GIS",cat:"تطبيقات"},
+  {en:"Seismic information",pron:"سيزميك إنفورميشن",ar:"المعلومات الزلزالية",meaning:"بيانات الزلازل وحركات قشرة الأرض التي يحللها الجيولوجيون بـ GIS",cat:"تطبيقات"},
+  {en:"Rock analysis",pron:"روك أناليسيس",ar:"تحليل الصخور",meaning:"دراسة خصائص الصخور وتوزيعها الجغرافي باستخدام GIS",cat:"تطبيقات"},
+  {en:"Dam site",pron:"دام سايت",ar:"موقع بناء السد",meaning:"تحديد أفضل موقع لبناء السد اعتماداً على تحليل GIS",cat:"تطبيقات"},
+  {en:"Sustainable tourism",pron:"سوستينبل توريزم",ar:"السياحة المستدامة",meaning:"السياحة التي تحافظ على الموارد الطبيعية والثقافية للأجيال القادمة",cat:"تطبيقات"},
+  {en:"Earthquake catalogue",pron:"أيرثكويك كاتلوج",ar:"قاعدة بيانات الزلازل",meaning:"سجل شامل لجميع الزلازل التاريخية والحديثة في منطقة ما",cat:"تطبيقات"},
+  {en:"Seismologist",pron:"سيزمولوجيست",ar:"عالم الزلازل",meaning:"متخصص في دراسة الزلازل وحركة الأرض",cat:"تطبيقات"},
+  {en:"Fisheries management",pron:"فيشيريز منيجمنت",ar:"إدارة الثروة السمكية",meaning:"رصد وإدارة الموارد السمكية في البحار والأنهار باستخدام GIS",cat:"تطبيقات"},
+  {en:"Illegal fishing",pron:"إليغال فيشنج",ar:"الصيد غير المشروع",meaning:"صيد الأسماك بطرق أو في مناطق محظورة، ويمكن رصده بـ GIS",cat:"تطبيقات"},
+  {en:"Traffic flow",pron:"ترافيك فلو",ar:"حركة المرور",meaning:"انسياب السيارات على الطرق وتحليل كثافتها بنظام GIS",cat:"تطبيقات"},
+  {en:"Road geometry",pron:"رود جيومتري",ar:"هندسة الطرق",meaning:"الخصائص الهندسية للطرق كالعرض والانحناء والميل",cat:"تطبيقات"},
+  {en:"3D visualization",pron:"ثري دي فيجوالايزيشن",ar:"التصور ثلاثي الأبعاد",meaning:"عرض البيانات الجغرافية بشكل مجسم ثلاثي الأبعاد في GIS",cat:"تطبيقات"},
+  {en:"Facility management",pron:"فاسيليتي منيجمنت",ar:"إدارة المرافق",meaning:"إدارة المباني والمنشآت باستخدام GIS لتخطيط المساحات وصيانتها",cat:"تطبيقات"},
+  {en:"Retail outlet",pron:"ريتيل أوتليت",ar:"منفذ البيع بالتجزئة",meaning:"متجر أو فرع تجاري، يستخدم GIS لاختيار أفضل موقع له",cat:"تطبيقات"},
+  {en:"Post code",pron:"بوست كود",ar:"الرمز البريدي",meaning:"رمز رقمي يحدد موقعاً جغرافياً ويُستخدم في GIS لتحديد المواقع",cat:"تطبيقات"},
+  {en:"Erosion",pron:"إيروجن",ar:"التعرية / الانجراف",meaning:"عملية تآكل التربة والصخور بفعل الماء أو الرياح، تُحلل بـ GIS",cat:"تطبيقات"},
+  {en:"Sedimentation",pron:"سيديمينتيشن",ar:"الترسيب",meaning:"تراكم الرواسب في قاع الأنهار والبحار، يُدرس بالبيانات الجغرافية",cat:"تطبيقات"},
+  {en:"River channel",pron:"ريفر تشانل",ar:"مجرى النهر",meaning:"المسار الذي يسير فيه النهر، يُحلل في GIS لاختيار مواقع الجسور",cat:"تطبيقات"},
+  {en:"Flood flow",pron:"فلود فلو",ar:"تدفق الفيضان",meaning:"حجم وسرعة المياه أثناء الفيضان، يُحلل لاختيار مواقع الجسور",cat:"تطبيقات"},
+  {en:"Jurisdiction boundaries",pron:"جيوريسديكشن باوندريز",ar:"الحدود الإدارية",meaning:"الحدود القانونية التي تحدد نطاق سلطة هيئة حكومية أو إدارية",cat:"تطبيقات"},
+  {en:"Defense and policing",pron:"ديفنس آند بوليسنج",ar:"الدفاع والأمن",meaning:"استخدام GIS في العمليات العسكرية والأمنية وتتبع الجريمة",cat:"تطبيقات"},
+  {en:"Land registration",pron:"لاند ريجيستريشن",ar:"تسجيل الأراضي",meaning:"توثيق ملكية الأراضي رسمياً باستخدام البيانات الجغرافية",cat:"تطبيقات"},
+  {en:"Property taxation",pron:"بروبرتي تاكسيشن",ar:"ضريبة العقارات",meaning:"تقدير وتحصيل الضرائب على العقارات بمساعدة خرائط GIS",cat:"تطبيقات"},
+  {en:"Utility networks",pron:"يوتيليتي نيت ووركس",ar:"شبكات المرافق",meaning:"شبكات المياه والكهرباء والغاز والاتصالات التي يديرها GIS",cat:"تطبيقات"},
+  {en:"Hazardous material spills",pron:"هازاردس ماتيريال سبيلز",ar:"انسكابات المواد الخطرة",meaning:"تسرب مواد كيميائية أو سامة، يستخدم GIS لتحديد نطاق الخطر",cat:"تطبيقات"},
+  {en:"Wastewater",pron:"وييست ووتر",ar:"مياه الصرف الصحي",meaning:"المياه المستخدمة التي تحتاج معالجة قبل التخلص منها",cat:"تطبيقات"},
+  {en:"Air toxics",pron:"إير توكسيكس",ar:"الملوثات الهوائية السامة",meaning:"مواد سامة في الهواء تنبعث من المصانع ويتتبع GIS انتشارها",cat:"تطبيقات"},
+  {en:"Acid rain",pron:"أسيد رين",ar:"الأمطار الحمضية",meaning:"أمطار تحتوي ملوثات كيميائية حمضية تضر بالغابات والبيئة",cat:"تطبيقات"},
+  {en:"Pesticides",pron:"بيستيسايدز",ar:"المبيدات الحشرية",meaning:"مواد كيميائية تُستخدم لمكافحة الآفات ويُدرس تأثيرها بـ GIS",cat:"تطبيقات"},
+  {en:"Migration patterns",pron:"مايغريشن باترنز",ar:"أنماط الهجرة",meaning:"أنماط تحركات الحيوانات أو البشر التي يتتبعها ويحللها GIS",cat:"تطبيقات"},
+  {en:"Endangered species",pron:"إنديجنجرد سبيشيز",ar:"الأنواع المهددة بالانقراض",meaning:"الكائنات الحية المعرضة لخطر الانقراض ويساعد GIS في حمايتها",cat:"تطبيقات"},
+  {en:"Real estate growth",pron:"ريل إستيت غروث",ar:"نمو العقارات",meaning:"توسع البناء والتطوير العقاري يمكن نمذجته وتحليله بـ GIS",cat:"تطبيقات"},
+  {en:"Renewable energy resources",pron:"رينيوبل إنيرجي ريسورسز",ar:"موارد الطاقة المتجددة",meaning:"الطاقة المستمدة من الشمس والرياح والمياه، يخطط لها GIS",cat:"تطبيقات"},
+  {en:"Crime mapping",pron:"كرايم مابنج",ar:"رسم خرائط الجريمة",meaning:"تحليل الجرائم وتوزيعها الجغرافي لمساعدة الشرطة",cat:"تطبيقات"},
+  {en:"Environmental risk",pron:"إنفايرونمنتال ريسك",ar:"المخاطر البيئية",meaning:"تقييم المخاطر الناتجة عن التلوث أو الكوارث الطبيعية بـ GIS",cat:"تطبيقات"},
+  {en:"Ocean industry",pron:"أوشن إنداستري",ar:"الصناعة البحرية",meaning:"الأنشطة التجارية والصناعية في البحار التي يدعمها GIS",cat:"تطبيقات"},
+  {en:"Water quality management",pron:"ووتر كواليتي منيجمنت",ar:"إدارة جودة المياه",meaning:"مراقبة وتحسين نوعية المياه باستخدام نمذجة GIS",cat:"تطبيقات"},
+  {en:"Watershed",pron:"ووتر شيد",ar:"حوض التصريف / حوض الاستجماع",meaning:"المنطقة الجغرافية التي تصب مياهها في نهر أو بحيرة واحدة",cat:"تطبيقات"},
+  {en:"Tanker spill",pron:"تانكر سبيل",ar:"انسكاب ناقلة النفط",meaning:"تسرب النفط من الناقلات البحرية وتقييم أضراره بـ GIS",cat:"تطبيقات"},
+  {en:"Satellite routing",pron:"ساتيلايت روتنج",ar:"تتبع المسارات بالأقمار الصناعية",meaning:"استخدام بيانات الأقمار الصناعية لتحديد وتحسين مسارات النقل",cat:"تطبيقات"},
+
+  // وظائف إضافية
+  {en:"Automated mapping",pron:"أوتوميتد مابنج",ar:"رسم الخرائط التلقائي",meaning:"إعادة إنتاج الخرائط الورقية رقمياً على الحاسوب تلقائياً",cat:"وظائف"},
+  {en:"Thematic mapping",pron:"ثيماتيك مابنج",ar:"رسم الخرائط الموضوعية",meaning:"خرائط تركز على موضوع محدد كالسكان أو المناخ أو الاقتصاد",cat:"وظائف"},
+  {en:"Spatial querying",pron:"سباشيال كويرينج",ar:"الاستعلام المكاني",meaning:"البحث في قاعدة البيانات الجغرافية بشروط مكانية محددة",cat:"وظائف"},
+  {en:"Spatial browsing",pron:"سباشيال براوزنج",ar:"التصفح المكاني",meaning:"استعراض محتوى قاعدة البيانات الجغرافية بحرية دون شروط محددة",cat:"وظائف"},
+  {en:"Spatial problem solving",pron:"سباشيال بروبلم سولفنج",ar:"حل المسائل المكانية",meaning:"استخدام GIS لحل مشكلات تتعلق بالمواقع والعلاقات الجغرافية",cat:"وظائف"},
+  {en:"Spatial statistics",pron:"سباشيال ستاتيستيكس",ar:"الإحصاء المكاني",meaning:"أساليب إحصائية تأخذ بعين الاعتبار الموضع الجغرافي للظاهرات",cat:"وظائف"},
+  {en:"Data validation",pron:"داتا فاليديشن",ar:"التحقق من صحة البيانات",meaning:"فحص البيانات الجغرافية للتأكد من دقتها وخلوها من الأخطاء",cat:"وظائف"},
+  {en:"Geometric conversion",pron:"جيوميتريك كونفيرجن",ar:"التحويل الهندسي",meaning:"تغيير إسقاط أو مقياس أو دوران الخريطة في GIS",cat:"وظائف"},
+  {en:"Map registration",pron:"ماب ريجيستريشن",ar:"تسجيل / ربط الخريطة",meaning:"ربط الخريطة الرقمية بنظام إحداثيات حقيقي على الأرض",cat:"وظائف"},
+  {en:"Aggregation",pron:"أغريغيشن",ar:"التجميع / الدمج",meaning:"دمج بيانات متعددة صغيرة في وحدة بيانات أكبر",cat:"وظائف"},
+  {en:"Coordinate thinning",pron:"كوأوردينيت ثيننج",ar:"تقليص النقاط الإحداثية",meaning:"تقليل عدد النقاط الإحداثية مع الحفاظ على الشكل العام للكيان",cat:"وظائف"},
+  {en:"Edge matching",pron:"إيدج ماتشنج",ar:"مطابقة الحواف",meaning:"ربط طبقات الخريطة المجاورة بشكل متسق عند حدودها",cat:"وظائف"},
+  {en:"Kriging",pron:"كريغنج",ar:"التحليل بطريقة كريغنج",meaning:"أسلوب إحصائي جغرافي للتخمين بقيم المواقع غير المعروفة",cat:"وظائف"},
+  {en:"Spline functions",pron:"سبلاين فانكشنز",ar:"دوال الانسياب",meaning:"طريقة رياضية للاستيفاء بين نقاط البيانات بمنحنيات ناعمة",cat:"وظائف"},
+  {en:"Thiessen polygons",pron:"ثيسن بوليغونز",ar:"مضلعات ثيسن",meaning:"مناطق هندسية تحدد أقرب نقطة بيانات لكل موقع",cat:"وظائف"},
+  {en:"Centroid",pron:"سينترويد",ar:"النقطة المركزية",meaning:"النقطة المركزية لمضلع أو منطقة جغرافية في GIS",cat:"وظائف"},
+  {en:"Buffer generation",pron:"بافر جينيريشن",ar:"إنشاء المنطقة الحاجزة",meaning:"رسم منطقة بمسافة محددة حول نقطة أو خط أو منطقة في GIS",cat:"وظائف"},
+  {en:"Boolean logic",pron:"بوليان لوجيك",ar:"المنطق الثنائي البوليوني",meaning:"نظام منطقي يستخدم AND, OR, NOT للبحث والاستعلام في قواعد البيانات",cat:"وظائف"},
+  {en:"Contiguity",pron:"كونتيغيويتي",ar:"التجاور المكاني",meaning:"تحليل العلاقات بين المناطق المتجاورة في GIS",cat:"وظائف"},
+  {en:"Intervisibility",pron:"إنترفيزيبيليتي",ar:"التشاهد / خط الرؤية",meaning:"تحليل ما إذا كان نقطتان تتراءيان لبعضهما عبر التضاريس",cat:"وظائف"},
+  {en:"Digital terrain modelling",pron:"ديجيتال تيرين موديلنج",ar:"نمذجة التضاريس الرقمية",meaning:"إنشاء نموذج رقمي للتضاريس يمثل ارتفاعات سطح الأرض",cat:"وظائف"},
+  {en:"Histogram",pron:"هيستوغرام",ar:"المخطط التكراري",meaning:"رسم بياني يظهر توزيع القيم في بيانات GIS",cat:"وظائف"},
+  {en:"Frequency analysis",pron:"فريكوونسي أناليسيس",ar:"تحليل التكرار",meaning:"دراسة تكرار وقوع ظاهرة ما في منطقة جغرافية",cat:"وظائف"},
+  {en:"Volume calculations",pron:"فوليوم كالكيوليشنز",ar:"حسابات الحجم",meaning:"قياس حجم التضاريس مثل المناجم أو الخزانات باستخدام GIS",cat:"وظائف"},
+  {en:"Textual display",pron:"تيكستيوال ديسبلاي",ar:"العرض النصي",meaning:"عرض بيانات GIS في شكل جداول وتقارير نصية",cat:"وظائف"},
+  {en:"Multi-user access",pron:"مالتي يوزر أكسيس",ar:"الوصول متعدد المستخدمين",meaning:"إمكانية وصول عدة مستخدمين لقاعدة بيانات GIS في نفس الوقت",cat:"وظائف"},
+  {en:"Database security",pron:"دايتابيس سيكيوريتي",ar:"أمان قاعدة البيانات",meaning:"حماية بيانات GIS من الوصول غير المصرح به أو التعديل",cat:"وظائف"},
+  {en:"Communication linkages",pron:"كومينيكيشن لينكيجز",ar:"روابط الاتصال بين الأنظمة",meaning:"ربط نظام GIS بأنظمة أخرى لتبادل البيانات",cat:"وظائف"},
+  {en:"Map symbolism",pron:"ماب سيمبوليزم",ar:"رموز الخريطة",meaning:"الرموز والألوان التقليدية المستخدمة للتعبير عن ظاهرات مختلفة في الخريطة",cat:"وظائف"},
+  {en:"Image enhancement",pron:"إيميج إنهانسمنت",ar:"تحسين الصورة",meaning:"معالجة صور الأقمار الصناعية لتوضيح معالمها وتفاصيلها",cat:"وظائف"},
+  {en:"Raster to vector",pron:"راستر تو فيكتور",ar:"تحويل من نقطي إلى متجهي",meaning:"تحويل بيانات الصور النقطية إلى كيانات متجهية قابلة للتحرير",cat:"وظائف"},
+
+  // فوائد إضافية
+  {en:"Site selection",pron:"سايت سيليكشن",ar:"اختيار الموقع",meaning:"عملية تحديد أفضل موقع لمشروع أو منشأة بناءً على تحليل GIS",cat:"فوائد"},
+  {en:"Route corridor selection",pron:"روت كوريدور سيليكشن",ar:"اختيار ممرات الطرق",meaning:"تحديد أفضل مسار للطريق أو خط الأنابيب في GIS",cat:"فوائد"},
+  {en:"Zoning",pron:"زوننج",ar:"تحديد مناطق الاستخدام",meaning:"تقسيم الأراضي إلى مناطق مختلفة كسكنية وتجارية وصناعية",cat:"فوائد"},
+  {en:"Conservation",pron:"كونسيرفيشن",ar:"الحفاظ على الموارد الطبيعية",meaning:"حماية الموارد البيئية والطبيعية باستخدام تحليلات GIS",cat:"فوائد"},
+  {en:"Natural resource extraction",pron:"ناتشورال ريسورس إكستراكشن",ar:"استخراج الموارد الطبيعية",meaning:"عمليات التعدين والنفط والغاز التي يُحسن GIS تخطيطها",cat:"فوائد"},
+  {en:"Geographic accounting",pron:"جيوغرافيك أكاونتنج",ar:"المحاسبة الجغرافية",meaning:"توثيق وتتبع التغيرات في الظاهرات الجغرافية عبر الزمن",cat:"فوائد"},
+  {en:"Forest inventory",pron:"فوريست إنفنتري",ar:"جرد الغابات",meaning:"حصر وتصنيف أنواع الأشجار وكثافتها في منطقة باستخدام GIS",cat:"فوائد"},
+  {en:"Water flows",pron:"ووتر فلوز",ar:"تدفقات المياه",meaning:"تحركات وكميات المياه في الأنهار والأحواض التي يتتبعها GIS",cat:"فوائد"},
+  {en:"Visual framework",pron:"فيجوال فريم ووك",ar:"الإطار المرئي",meaning:"عرض مرئي شامل يساعد المسؤولين على فهم الأوضاع الجغرافية",cat:"فوائد"},
+  {en:"Land ownership",pron:"لاند أونيرشيب",ar:"ملكية الأراضي",meaning:"حقوق امتلاك الأراضي التي تُوثق وتُدار بخرائط GIS",cat:"فوائد"},
+  {en:"Topology",pron:"توبولوجي",ar:"الطوبولوجيا / العلاقات المكانية",meaning:"دراسة العلاقات المكانية بين الكيانات الجغرافية كالتجاور والاحتواء",cat:"فوائد"},
+  {en:"Labour savings",pron:"ليبر سيفنجز",ar:"توفير في الجهد البشري",meaning:"تقليل الوقت والعمالة اللازمة لإنجاز المهام الجغرافية بفضل GIS",cat:"فوائد"},
+  {en:"Authoritative records",pron:"أوثوريتيتيف ريكوردز",ar:"السجلات الرسمية الموثوقة",meaning:"قواعد بيانات جغرافية رسمية معترف بها كمرجع قانوني",cat:"فوائد"},
+  {en:"Storytelling",pron:"ستوري تيلنج",ar:"السرد البياني",meaning:"استخدام خرائط GIS لرواية قصص وتوصيل المعلومات بشكل مفهوم للجمهور",cat:"فوائد"},
+  {en:"Socio-economic data",pron:"سوشيو إيكونوميك داتا",ar:"البيانات الاجتماعية الاقتصادية",meaning:"بيانات تصف أحوال السكان الاقتصادية والاجتماعية وتُحلل بـ GIS",cat:"فوائد"},
+];
+
+// ----------------------------------------------------------------
+// SENTENCES from the PDF
+// ----------------------------------------------------------------
+const sentences = [
+  {
+    cat: "تعريف GIS",
+    items: [
+      {en:"A Geographic Information System (GIS) is a system of computer software, hardware and data, personnel that make it possible to enter, manipulate, analyze, and present data, and the information that is tied to a location on the earth's surface.",
+       ar:"نظام المعلومات الجغرافية (GIS) هو نظام يتكون من برامج حاسوبية وأجهزة وبيانات وكوادر بشرية، يُمكّن من إدخال البيانات ومعالجتها وتحليلها وعرضها، والمعلومات المرتبطة بموقع على سطح الأرض."},
+      {en:"G: Geographic implies an interest in the spatial identity or locality of certain entities on, under or above the surface of the earth.",
+       ar:"G: الجغرافيا — تعني الاهتمام بالهوية المكانية أو موقع كيانات بعينها على سطح الأرض أو تحته أو فوقه."},
+      {en:"I: Information implies the need to be informed in order to make decisions. Data or raw facts are interpreted to create information that is useful for decision-making.",
+       ar:"I: المعلومات — تعني الحاجة إلى الاطلاع على المعلومات لاتخاذ القرارات. تُفسَّر البيانات أو الحقائق الخام لإنشاء معلومات مفيدة لاتخاذ القرار."},
+      {en:"S: System implies the need for staff, computer hardware and procedures, which can produce the information required for decision-making that is data collection, processing, and presentation.",
+       ar:"S: النظام — يعني الحاجة إلى موظفين وأجهزة حاسوب وإجراءات قادرة على إنتاج المعلومات اللازمة لاتخاذ القرارات من جمع البيانات ومعالجتها وعرضها."},
+      {en:"GIS is defined as a powerful set of tools for collecting, storing, retrieving, at will, transforming and displaying spatial data from the real world.",
+       ar:"يُعرَّف GIS بأنه مجموعة قوية من الأدوات لجمع البيانات المكانية من العالم الحقيقي وتخزينها واسترجاعها وتحويلها وعرضها عند الحاجة."},
+      {en:"GIS is an integrated system of computer hardware, software, and trained personnel linking topographic, demographic, utility, facility, image and other resource data that is geographically referenced.",
+       ar:"GIS هو نظام متكامل من أجهزة الحاسوب والبرامج والكوادر المدرّبة، يربط بيانات الطوبوغرافيا والديموغرافيا والمرافق والمرئيات والموارد الأخرى المرجّعة جغرافياً."},
+    ]
+  },
+  {
+    cat: "تاريخ GIS",
+    items: [
+      {en:"The history of GIS all started in 1854. Cholera hit the city of London, England. British physician Dr. John Snow began mapping outbreak locations, roads, property boundaries and water lines.",
+       ar:"بدأت قصة GIS عام 1854 حين اجتاح وباء الكوليرا مدينة لندن. بدأ الطبيب البريطاني د. جون سنو برسم خريطة لمواقع تفشي المرض والطرق وحدود الممتلكات وخطوط المياه."},
+      {en:"Dr. John Snow's Cholera map was a major event connecting geography and public health safety. To this date, Dr. John Snow is known as the father of epidemiology.",
+       ar:"كانت خريطة الكوليرا للدكتور جون سنو حدثاً بارزاً يجمع الجغرافيا والصحة العامة. وحتى يومنا هذا، يُعرف الدكتور جون سنو بـ'أبي علم الأوبئة'."},
+      {en:"Enter Roger Tomlinson – the father of GIS: It was during Roger Tomlinson's tenure with the Canadian government in the 1960s when he initiated, planned and directed the development of the Canadian Geographic System (CGIS).",
+       ar:"روجر توملينسون — أبو GIS: خلال عمل روجر توملينسون مع الحكومة الكندية في الستينيات، أطلق وخطّط وأدار تطوير النظام الجغرافي الكندي (CGIS)."},
+      {en:"In 1982, ARC/INFO for minicomputers was launched and in 1986, PC ARC/INFO was launched with the production of the Intel microcomputer.",
+       ar:"في عام 1982 أُطلق برنامج ARC/INFO للحاسوبات الصغيرة، وفي 1986 أُطلق PC ARC/INFO مع ظهور المعالجات الدقيقة من إنتل."},
+      {en:"Roger Tomlinson first used the term 'Geographic Information System' in his publication in 1968 'A Geographic Information System for Regional Planning'.",
+       ar:"استخدم روجر توملينسون مصطلح 'نظام المعلومات الجغرافية' لأول مرة في منشوره عام 1968 بعنوان 'نظام معلومات جغرافية للتخطيط الإقليمي'."},
+    ]
+  },
+  {
+    cat: "مكونات GIS",
+    items: [
+      {en:"Hardware is the computer on which a GIS operates; GIS software runs on a wide range of hardware types, from centralized computer server to desktop computers and in stand-alone or networked configurations.",
+       ar:"الأجهزة هي الحاسوب الذي يعمل عليه نظام GIS؛ تعمل برامج GIS على مجموعة واسعة من أنواع الأجهزة، من الخوادم المركزية إلى أجهزة الحاسوب المكتبية في تكوينات منفردة أو متصلة بشبكة."},
+      {en:"GIS software provides the functions and tools needed to store, analyze and display geographic information. Key software components are tools for the input and manipulation of geographic information, a database management system (DBMS), tools that support geographic query, analysis and visualization, and a geographical user interface (GUI).",
+       ar:"توفر برامج GIS الوظائف والأدوات اللازمة لتخزين المعلومات الجغرافية وتحليلها وعرضها. وتشمل المكونات الرئيسية: أدوات إدخال المعلومات الجغرافية ومعالجتها، ونظام إدارة قواعد البيانات، وأدوات الاستعلام والتحليل والتصور، وواجهة المستخدم الرسومية."},
+      {en:"Possibly the most important component of a GIS is the data. Geographic data and related tabular data can be collected in-house or purchased from a commercial data provider.",
+       ar:"ربما يكون المكوّن الأهم في GIS هو البيانات. يمكن جمع البيانات الجغرافية والجداول المرتبطة بها داخلياً أو شراؤها من موفر بيانات تجاري."},
+      {en:"GIS technology is of limited value without the people who manage the system and develop plans for applying it to real-world problems.",
+       ar:"لتقنية GIS قيمة محدودة دون وجود الأشخاص الذين يديرون النظام ويضعون خططاً لتطبيقه على مشكلات العالم الحقيقي."},
+      {en:"Vector data/layers in GIS refer to discrete objects represented by points, lines and polygons.",
+       ar:"البيانات والطبقات المتجهة في GIS تشير إلى كيانات منفصلة تُمثَّل بنقاط وخطوط ومضلعات."},
+      {en:"Raster data is a continuous grid of cells in two dimensions or the equivalent of cubic cells in three dimensions.",
+       ar:"البيانات الشبكية هي شبكة متصلة من الخلايا في بُعدين، أو ما يعادلها من الخلايا المكعبة في ثلاثة أبعاد."},
+      {en:"All data in a GIS are either spatial data or Attribute data. Spatial data tells us where something occurs. Attribute data tells what occurs; it tells us the nature or characteristics of the spatial data.",
+       ar:"جميع البيانات في GIS إما بيانات مكانية أو بيانات وصفية. البيانات المكانية تخبرنا أين يحدث الشيء، أما البيانات الوصفية فتخبرنا ماذا يحدث وما طبيعة وخصائص البيانات المكانية."},
+    ]
+  },
+  {
+    cat: "تطبيقات GIS",
+    items: [
+      {en:"Web-based navigation maps encourage safe navigation in waterway. Ferry paths and shipping routes are identified for the better routing.",
+       ar:"تشجع خرائط الملاحة المستندة إلى الويب على الملاحة الآمنة في الممرات المائية، وتُحدَّد مسارات العبّارات وخطوط الشحن لتحسين التوجيه."},
+      {en:"GIS helps us to better understand our world so we can meet global challenges.",
+       ar:"يساعدنا GIS على فهم عالمنا بشكل أفضل حتى نتمكن من مواجهة التحديات العالمية."},
+      {en:"GIS can effectively use for the management of traffic problems. Today's population along with the road traffic is increasing exponentially.",
+       ar:"يمكن استخدام GIS بفاعلية في إدارة مشكلات المرور؛ فالسكان اليوم وحركة المرور على الطرق في تزايد متصاعد."},
+      {en:"GIS provides a valuable toolbox of techniques and technologies of wide applicability to the achievement of sustainable tourism development.",
+       ar:"يوفر GIS مجموعة قيّمة من التقنيات والتكنولوجيا ذات التطبيق الواسع لتحقيق التنمية السياحية المستدامة."},
+      {en:"GIS is a valuable tool that helps in the planning organizing and subsequent growth in the energy and utilities industries.",
+       ar:"GIS أداة قيّمة تساعد في التخطيط والتنظيم والنمو اللاحق في صناعات الطاقة والمرافق."},
+      {en:"GIS provides the ability to completely model utility networks, such as those supplying water, power and telecommunications to a large number of consumers.",
+       ar:"يوفر GIS القدرة على نمذجة شبكات المرافق بالكامل، كتلك التي تزوّد المياه والطاقة والاتصالات لأعداد كبيرة من المستهلكين."},
+      {en:"Every day, planners use Geographic Information System (GIS) technology to research, develop, implement, and monitor the progress of their plans.",
+       ar:"يستخدم المخططون يومياً تقنية نظم المعلومات الجغرافية (GIS) للبحث وتطوير الخطط وتنفيذها ومتابعة تقدمها."},
+    ]
+  },
+  {
+    cat: "فوائد GIS",
+    items: [
+      {en:"Better decision making: This typically has to do with making better decisions about location. People are beginning to realize that making the correct decision about a location is strategic to the success of an organization.",
+       ar:"تحسين اتخاذ القرار: يتعلق هذا عادةً باتخاذ قرارات أفضل بشأن الموقع. يدرك الناس أن اتخاذ القرار الصحيح بشأن الموقع أمر استراتيجي لنجاح المؤسسة."},
+      {en:"Improved communication: GIS-based maps and visualizations greatly assist in understanding situations and storytelling. They are a new language that improves communication between different teams, departments, disciplines, professional fields, organizations, and the public.",
+       ar:"تحسين التواصل: تساهم الخرائط والمرئيات المستندة إلى GIS بشكل كبير في فهم المواقف وسرد القصص. إنها لغة جديدة تحسّن التواصل بين الفرق والأقسام والتخصصات والمجالات المهنية المختلفة."},
+      {en:"GIS can lead to new ways of thinking about and dealing with old problems, because the data is tied to a common referencing system.",
+       ar:"يمكن لـ GIS أن يقود إلى طرق جديدة في التفكير والتعامل مع المشكلات القديمة، لأن البيانات مرتبطة بنظام مرجعي مشترك."},
+      {en:"Cost savings resulting from greater efficiency. These are associated either with carrying out the mission (labor savings from automating or improving a workflow) or improvements in the mission itself.",
+       ar:"توفير التكاليف الناتج عن زيادة الكفاءة، سواء من خلال تنفيذ المهمة (توفير العمالة عبر أتمتة سير العمل أو تحسينه) أو من خلال التحسينات في المهمة ذاتها."},
+    ]
+  },
+
+  // تعريفات إضافية من المؤلفين
+  {en:"A GIS can be defined as a computing application capable of creating, storing, manipulating, visualizing, and analyzing geographic information. It finds its strongest applications in resources management, utilities management, telecommunications, urban and regional planning.",ar:"يمكن تعريف GIS بأنه تطبيق حوسبي قادر على إنشاء وتخزين ومعالجة وتصور وتحليل المعلومات الجغرافية. ويجد تطبيقاته الأقوى في إدارة الموارد وإدارة المرافق والاتصالات والتخطيط الحضري والإقليمي.",cat:"تعريف GIS"},
+  {en:"GIS is defined as a computerized system for capture, storage, retrieval, analysis and display of spatial data describing the land attributes and environmental features for a given geographic region. (Thurgood, 1995)",ar:"يُعرَّف GIS بأنه نظام حاسوبي لالتقاط وتخزين واسترجاع وتحليل وعرض البيانات المكانية التي تصف خصائص الأرض والسمات البيئية لمنطقة جغرافية محددة. (ثيرغود، 1995)",cat:"تعريف GIS"},
+  {en:"GIS is defined as a decision support system involving the integration of spatially referenced data in a problem-solving environment. (Cowen, 1988)",ar:"يُعرَّف GIS بأنه نظام دعم القرار يتضمن دمج البيانات المرجعية مكانياً في بيئة حل المشكلات. (كاوين، 1988)",cat:"تعريف GIS"},
+  {en:"GIS is defined as a powerful set of tools for collecting, storing, retrieving, at will, transforming and displaying spatial data from the real world. (Burrough, 1986)",ar:"يُعرَّف GIS بأنه مجموعة قوية من الأدوات لجمع وتخزين واسترجاع وتحويل وعرض البيانات المكانية من العالم الحقيقي حسب الطلب. (باروه، 1986)",cat:"تعريف GIS"},
+  {en:"GIS is any manual or computer based set of procedures used to store and manipulate geographically referenced data. (Aronoff, 1989)",ar:"GIS هو أي مجموعة من الإجراءات اليدوية أو الحاسوبية تُستخدم لتخزين ومعالجة البيانات المرجّعة جغرافياً. (أرونوف، 1989)",cat:"تعريف GIS"},
+  {en:"In the strictest sense, a GIS is a computer system capable of assembling, storing, manipulating, and displaying geographically referenced information. Practitioners also regard the total GIS as including operating personnel and the data that go into the system. (USGS)",ar:"بالمعنى الدقيق، GIS هو نظام حاسوبي قادر على تجميع وتخزين ومعالجة وعرض المعلومات المرجّعة جغرافياً. ويعدّ الممارسون أن GIS الكامل يشمل أيضاً الموظفين والبيانات التي تُدخَل في النظام. (المسح الجيولوجي الأمريكي USGS)",cat:"تعريف GIS"},
+  {en:"GIS is an integrated system of computer hardware, software, and trained personnel linking topographic, demographic, utility, facility, image and other resource data that is geographically referenced. (NASA)",ar:"GIS هو نظام متكامل من الأجهزة والبرمجيات والكوادر المدربة يربط البيانات الطبوغرافية والسكانية والمرافق والمنشآت والصور وغيرها من بيانات الموارد المرجّعة جغرافياً. (وكالة ناسا)",cat:"تعريف GIS"},
+  {en:"Geographic Information System is a system of hardware, software, data, people, organizations and institutional arrangements for collecting, storing, analyzing and disseminating information about areas of the earth.",ar:"نظام المعلومات الجغرافية هو نظام يضم الأجهزة والبرمجيات والبيانات والأفراد والمنظمات والترتيبات المؤسسية لجمع وتخزين وتحليل ونشر المعلومات المتعلقة بمناطق الأرض.",cat:"تعريف GIS"},
+  {en:"An analysis of the three letters of the acronym GIS gives a clear picture of what GIS is all about: G for Geographic, I for Information, and S for System.",ar:"تحليل الأحرف الثلاثة في اختصار GIS يعطي صورة واضحة عما يدور حوله: G تعني الجغرافية، I تعني المعلومات، وS تعني النظام.",cat:"تعريف GIS"},
+
+  // تاريخ إضافي
+  {en:"Before 1960, all mapping was done on paper or sieve mapping. The technology was not here for GIS to come to light. In the 1950s, maps were simple and were used for vehicle routing, new development planning, and locating points of interest.",ar:"قبل عام 1960، كان كل رسم الخرائط يتم على الورق أو بخرائط الغربلة. لم تكن التكنولوجيا متوفرة لظهور GIS. في الخمسينيات، كانت الخرائط بسيطة وتُستخدم لتحديد مسارات المركبات والتخطيط وتحديد المعالم.",cat:"تاريخ GIS"},
+  {en:"It was during Roger Tomlinson's tenure with the Canadian government in the 1960s when he initiated, planned and directed the development of the Canadian Geographic System (CGIS). CGIS was unique because it adopted a layer approach system to map handling.",ar:"خلال عمل روجر توملينسون مع الحكومة الكندية في الستينيات، بادر بتخطيط وإدارة تطوير النظام الجغرافي الكندي CGIS. وكان CGIS متميزاً لاعتماده نظام الطبقات في التعامل مع الخرائط.",cat:"تاريخ GIS"},
+  {en:"The Canadian Land Inventory was developed in 1964, using soil, drainage and climate characteristics to determine land capability for crop types and forested areas. It recognized that accurate and relevant data was vital to land planning and decision-making.",ar:"طُوِّر جرد الأراضي الكندية عام 1964، مستخدماً خصائص التربة والصرف والمناخ لتحديد قدرة الأرض لأنواع المحاصيل والمناطق الحرجية. وأدرك أن البيانات الدقيقة والملائمة ضرورية لتخطيط الأراضي واتخاذ القرار.",cat:"تاريخ GIS"},
+  {en:"The US Census Bureau's pioneering work led to the digital input of the 1970 Census using the GBF-DIME format (Geographic Base File - Dual Independent Map Encoding). This format supported digital data input, error fixing and choropleth mapping.",ar:"أدى العمل الرائد لمكتب تعداد السكان الأمريكي إلى الإدخال الرقمي لتعداد 1970 باستخدام صيغة GBF-DIME. وقد دعم هذا التنسيق إدخال البيانات الرقمية وتصحيح الأخطاء ورسم خرائط الكثافة اللونية.",cat:"تاريخ GIS"},
+  {en:"In the mid-1970s, Harvard Laboratory Computer Graphics developed the first vector GIS called ODYSSEY GIS. ESRI's ARC/INFO used the technical framework from ODYSSEY GIS, leading to the next stage of GIS software commercialization.",ar:"في منتصف السبعينيات، طوّر مختبر هارفارد لرسومات الحاسوب أول نظام GIS متجهي يُسمى ODYSSEY GIS. استخدم برنامج ARC/INFO من ESRI الإطار التقني لـ ODYSSEY GIS، مما قاد إلى المرحلة التالية من تسويق برمجيات GIS.",cat:"تاريخ GIS"},
+  {en:"From 1990 to 2010, classrooms, businesses, and governments around the world started to harness digital mapping and analysis. Cheaper, faster computers, multiple software options, and the launch of new satellites all contributed to GIS proliferation.",ar:"من 1990 إلى 2010، بدأت الفصول الدراسية والشركات والحكومات حول العالم في توظيف رسم الخرائط الرقمي والتحليل. أسهمت الحواسيب الأرخص والأسرع وخيارات البرامج المتعددة وإطلاق أقمار صناعية جديدة في انتشار GIS.",cat:"تاريخ GIS"},
+  {en:"From 2010 onward, the open source explosion began. Amazing projects like QGIS provide any user with a computer with GIS software. GIS data has become more ubiquitous with TIGER data, Landsat satellite imagery and even LiDAR data accessible to download for free.",ar:"منذ 2010، بدأ انفجار المصدر المفتوح. مشاريع رائعة مثل QGIS توفر برنامج GIS لأي مستخدم. أصبحت بيانات GIS أكثر انتشاراً مع إتاحة بيانات TIGER وصور لاندسات وحتى بيانات LiDAR للتنزيل المجاني.",cat:"تاريخ GIS"},
+  {en:"Roger Tomlinson first used the term Geographic Information System in his 1968 publication 'A Geographic Information System for Regional Planning'. Because of this, Roger Tomlinson is known as the father of GIS.",ar:"استخدم روجر توملينسون مصطلح 'نظام المعلومات الجغرافية' لأول مرة في منشوره عام 1968 'نظام معلومات جغرافية للتخطيط الإقليمي'. ولهذا السبب يُعرف روجر توملينسون بـ 'أبو GIS'.",cat:"تاريخ GIS"},
+
+  // مكونات إضافية
+  {en:"GIS software provides the functions and tools needed to store, analyze and display geographic information. Key software components include tools for input and manipulation of geographic information, a database management system (DBMS), tools for geographic query and analysis, and a graphical user interface (GUI).",ar:"توفر برمجيات GIS الوظائف والأدوات اللازمة لتخزين البيانات الجغرافية وتحليلها وعرضها. تشمل المكونات الرئيسية أدوات لإدخال ومعالجة المعلومات الجغرافية، ونظام إدارة قواعد البيانات DBMS، وأدوات الاستعلام والتحليل الجغرافي، وواجهة المستخدم الرسومية GUI.",cat:"مكونات GIS"},
+  {en:"Vector data layers in GIS refer to discrete objects represented by points, lines and polygons. Lines are formed by connecting two or more points and polygons are closed sets of lines. Layers represent geometries that share a common set of attributes.",ar:"تشير طبقات البيانات المتجهية في GIS إلى كيانات منفصلة تُمثَّل بنقاط وخطوط ومضلعات. تتكوّن الخطوط بربط نقطتين أو أكثر، والمضلعات هي مجموعات خطوط مغلقة. تمثل الطبقات أشكالاً هندسية تشترك في مجموعة من الخصائص.",cat:"مكونات GIS"},
+  {en:"Raster data is a continuous grid of cells in two dimensions. Raster data is divided into categorical and continuous. In a categorical raster, every cell value is linked to a category like soil type or vegetation type. Continuous raster images describe phenomena like Digital Elevation Models.",ar:"البيانات النقطية هي شبكة مستمرة من الخلايا في بُعدين. تنقسم إلى تصنيفية ومستمرة. في النقطي التصنيفي، ترتبط كل قيمة خلية بفئة كنوع التربة أو الغطاء النباتي. تصف الصور النقطية المستمرة ظاهرات كنماذج الارتفاع الرقمي.",cat:"مكونات GIS"},
+  {en:"Data is one of the most important, and often most expensive, components of a GIS. All data in a GIS are either spatial data or attribute data. Spatial data tells us where something occurs. Attribute data tells us what occurs and describes the nature or characteristics of the spatial data.",ar:"البيانات هي أحد أهم مكونات GIS وغالباً الأكثر تكلفة. جميع البيانات في GIS إما بيانات مكانية أو بيانات وصفية. البيانات المكانية تخبرنا أين تقع الظاهرة. البيانات الوصفية تخبرنا ما هي الظاهرة وتصف طبيعتها وخصائصها.",cat:"مكونات GIS"},
+  {en:"GIS technology is of limited value without the people who manage the system and develop plans for applying it to real-world problems. One classification scheme classifies GIS users into three groups: System users, End Users, and Data Generators.",ar:"تكنولوجيا GIS ذات قيمة محدودة بدون الأشخاص الذين يديرون النظام ويضعون خططاً لتطبيقه على مشكلات العالم الحقيقي. يُصنّف أحد مخططات التصنيف مستخدمي GIS إلى ثلاث مجموعات: مستخدمو النظام، والمستخدمون النهائيون، ومنتجو البيانات.",cat:"مكونات GIS"},
+  {en:"A successful GIS operates according to a well-designed plan and business rules, which are the models and operating practices unique to each organization. There are various techniques used for map creation including automated raster to vector conversion or manual vectorisation using scanned images.",ar:"يعمل نظام GIS الناجح وفق خطة مُحكمة وقواعد عمل تمثل النماذج والممارسات الخاصة بكل مؤسسة. وتُستخدم تقنيات متنوعة لإنشاء الخرائط تشمل التحويل التلقائي من نقطي إلى متجهي أو الرقمنة اليدوية من خلال الصور الممسوحة.",cat:"مكونات GIS"},
+
+  // تطبيقات إضافية
+  {en:"ArcGIS supports safe navigation systems and provides accurate topographic and hydrographic data. The Coastal Resources Division began locating, documenting, and cataloging historic wrecks with GIS, providing public information through a web map regularly updated to keep the boating public informed of coastal hazards.",ar:"يدعم ArcGIS أنظمة الملاحة الآمنة ويوفر بيانات طبوغرافية وهيدروغرافية دقيقة. بدأت إدارة الموارد الساحلية في تحديد الحطام التاريخي وتوثيقه وفهرسته باستخدام GIS، موفرةً معلومات عامة عبر خريطة ويب لإبقاء البحارة على اطلاع بالمخاطر الساحلية.",cat:"تطبيقات GIS"},
+  {en:"Geologists use GIS in various applications: to study geologic features, analyze soils and strata, assess seismic information, and create three-dimensional (3D) displays of geographic features. GIS can also be used to analyze rock information characteristics and identify the best dam site location.",ar:"يستخدم الجيولوجيون GIS في تطبيقات متنوعة: لدراسة الخصائص الجيولوجية وتحليل التربة والطبقات وتقييم المعلومات الزلزالية وإنشاء عروض ثلاثية الأبعاد للمعالم الجغرافية. ويمكن لـ GIS أيضاً تحليل خصائص الصخور وتحديد أفضل موقع للسد.",cat:"تطبيقات GIS"},
+  {en:"GIS provides a valuable toolbox of techniques and technologies of wide applicability to the achievement of sustainable tourism development. Tourists will get all the information on a click: measure distance, find hotels and restaurants, and navigate to their respective links.",ar:"يوفر GIS صندوق أدوات قيماً من الأساليب والتقنيات ذات التطبيق الواسع لتحقيق التنمية السياحية المستدامة. سيحصل السياح على كافة المعلومات بنقرة واحدة: قياس المسافة، والعثور على الفنادق والمطاعم، والتنقل إلى وجهاتهم.",cat:"تطبيقات GIS"},
+  {en:"One of the most frightening phenomena of nature is the occurrence of an earthquake. A GIS based user interface system for querying an earthquake catalogue will be of great help to earthquake engineers and seismologists in understanding the behavior pattern of earthquakes in spatial and temporal domains.",ar:"من أكثر ظواهر الطبيعة رهبةً هو وقوع الزلازل. سيكون نظام واجهة مستخدم مبني على GIS للاستعلام في قاعدة بيانات الزلازل مساعدةً كبيرة لمهندسي الزلازل وعلماء الزلازل في فهم نمط سلوك الزلازل في النطاقين المكاني والزمني.",cat:"تطبيقات GIS"},
+  {en:"GIS can effectively be used for the management of traffic problems. By creating an extensive database with all traffic information such as speed data, road geometry, traffic flow and other spatial data, GIS provides a graphical bigger picture for traffic management.",ar:"يمكن استخدام GIS بفعالية لإدارة مشكلات المرور. من خلال إنشاء قاعدة بيانات شاملة تضم كل معلومات المرور كبيانات السرعة وهندسة الطرق وتدفق المرور وغيرها من البيانات المكانية، يوفر GIS صورة بيانية شاملة لإدارة المرور.",cat:"تطبيقات GIS"},
+  {en:"GIS has many uses and advantages in the field of facility management. GIS can be used by facility managers for space management, visualization and planning, emergency and disaster planning and response. It can be used throughout the life cycle of a facility from deciding where to build to space planning.",ar:"لـ GIS استخدامات ومزايا كثيرة في مجال إدارة المرافق. يمكن لمديري المرافق استخدام GIS في إدارة المساحات والتصور والتخطيط والتخطيط للطوارئ والكوارث والاستجابة لها. ويمكن استخدامه طوال دورة حياة المنشأة من تحديد مكان البناء إلى تخطيط المساحات.",cat:"تطبيقات GIS"},
+  {en:"Every day, planners use GIS technology to research, develop, implement, and monitor the progress of their plans. GIS provides planners, surveyors, and engineers with the tools they need to design and map their neighborhoods and cities. (ESRI, GIS Solutions for Urban and Regional Planning)",ar:"يستخدم المخططون كل يوم تقنية GIS للبحث والتطوير والتنفيذ ومتابعة تقدم خططهم. يوفر GIS للمخططين والمساحين والمهندسين الأدوات التي يحتاجونها لتصميم ورسم خرائط أحيائهم ومدنهم. (ESRI، حلول GIS للتخطيط الحضري والإقليمي)",cat:"تطبيقات GIS"},
+  {en:"The GIS provides the ability to completely model utility networks, such as those supplying water, power and telecommunications to a large number of consumers. Such a system may operate at a variety of scales, modeling service connections to consumers, service districts, and detailed facility layouts.",ar:"يوفر GIS القدرة على النمذجة الكاملة لشبكات المرافق، كتلك التي تمد الماء والكهرباء والاتصالات لأعداد كبيرة من المستهلكين. يمكن أن يعمل هذا النظام على مستويات متنوعة من الأحجام، ينمذج وصلات الخدمة للمستهلكين ومناطق الخدمة والتخطيط التفصيلي للمنشآت.",cat:"تطبيقات GIS"},
+
+  // فوائد إضافية
+  {en:"Better geographic information recordkeeping: Many organizations have a primary responsibility of maintaining authoritative records about the status and change of geography. Cultural geography examples are zoning, population census, land ownership, and administrative boundaries.",ar:"تحسين حفظ السجلات الجغرافية: كثير من المنظمات مسؤولة أساساً عن الحفاظ على سجلات موثوقة حول حالة الجغرافيا وتغيراتها. أمثلة الجغرافيا الثقافية: تقسيم المناطق، والتعداد السكاني، وملكية الأراضي، والحدود الإدارية.",cat:"فوائد GIS"},
+  {en:"Managing geographically: In government and many large corporations, GIS is becoming essential to understand what is going on. Senior administrators at the highest levels of government use GIS products to communicate, including briefings about land use, crime, environment, and defense situations.",ar:"الإدارة جغرافياً: في الحكومة وكثير من الشركات الكبيرة، أصبح GIS ضرورياً لفهم ما يجري. يستخدم كبار المسؤولين في أعلى مستويات الحكومة منتجات GIS للتواصل، بما يشمل إحاطات حول استخدام الأراضي والجريمة والبيئة والدفاع.",cat:"فوائد GIS"},
+  {en:"GIS can lead to new ways of thinking about and dealing with old problems, because the data is tied to a common referencing system. Topology permits new questions to be asked and encourages a new style of analysis that is in many cases fundamentally better than those used traditionally.",ar:"يمكن أن يؤدي GIS إلى طرق تفكير جديدة للتعامل مع المشكلات القديمة، لأن البيانات مرتبطة بنظام مرجعي مشترك. تُتيح الطوبولوجيا طرح أسئلة جديدة وتشجع على أسلوب تحليل جديد أفضل جوهرياً في كثير من الأحيان من الأساليب التقليدية.",cat:"فوائد GIS"},
+  {en:"GIS integrates different databases into one environment. Each layer in a GIS database may represent a complete database. Displays and manages spatial data in a spatial context. Map data is easier to search, analyze and present. Redundancy and other problems of multiple map sets are eliminated.",ar:"يدمج GIS قواعد بيانات مختلفة في بيئة واحدة. قد تمثل كل طبقة في قاعدة بيانات GIS قاعدة بيانات كاملة. يعرض البيانات المكانية ويديرها في سياقها المكاني. بيانات الخريطة أسهل في البحث والتحليل والعرض. يُقضى على التكرار والمشكلات الأخرى لمجموعات الخرائط المتعددة.",cat:"فوائد GIS"},
+];
+
+// ----------------------------------------------------------------
+// CAT COLORS
+// ----------------------------------------------------------------
+const catColor = {
+  "تعريفات":"#00d4ff","مكونات":"#7c3aed","بيانات":"#10b981",
+  "تقنيات":"#f59e0b","تاريخ":"#ec4899","تطبيقات":"#3b82f6",
+  "وظائف":"#8b5cf6","فوائد":"#14b8a6"
+};
+
+// ----------------------------------------------------------------
+// STATE
+// ----------------------------------------------------------------
+let S = {
+  xp:0, knownWords:[], qAnswered:0, bestScore:0,
+  fcType:'words', fcCat:'الكل', fcIdx:0,
+  qMode:'ar-en', qCat:'الكل',
+  quizQs:[], qIdx:0, qScore:0, wrongQs:[],
+  dictCat:'الكل', sentCat:'الكل'
+};
+
+function save(){ try{localStorage.setItem('gisS',JSON.stringify(S));}catch(e){} }
+function load(){ try{const d=localStorage.getItem('gisS');if(d)S={...S,...JSON.parse(d)};}catch(e){} }
+
+// ----------------------------------------------------------------
+// NAV
+// ----------------------------------------------------------------
+function go(id, tabEl){
+  document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  if(tabEl) tabEl.classList.add('active');
+  if(id==='flashcards') initFC();
+  if(id==='sentences') initSents();
+  if(id==='dictionary') initDict();
+  if(id==='progress') updateProgress();
+  document.getElementById('xpVal').textContent = S.xp;
+}
+
+// ================================================================
+//  FLASHCARDS
+// ================================================================
+function initFC(){
+  const cats = ['الكل',...new Set(words.map(w=>w.cat))];
+  document.getElementById('fcCatPills').innerHTML = cats.map(c=>
+    `<button class="pill ${c===S.fcCat?'active':''}" onclick="setFcCat('${c}')">${c}</button>`
+  ).join('');
+  renderFC();
+}
+
+function setFcCat(c){ S.fcCat=c; S.fcIdx=0;
+  document.querySelectorAll('#fcCatPills .pill').forEach(b=>b.classList.toggle('active',b.textContent===c));
+  renderFC();
+}
+function setFcType(t,el){
+  S.fcType=t; S.fcIdx=0;
+  document.querySelectorAll('.type-pill').forEach(b=>b.classList.remove('active'));
+  el.classList.add('active');
+  renderFC();
+}
+
+function getFcItems(){
+  if(S.fcType==='words'){
+    return S.fcCat==='الكل' ? words : words.filter(w=>w.cat===S.fcCat);
+  } else {
+    let all=[];
+    sentences.forEach(g=>{ if(S.fcCat==='الكل'||g.cat===S.fcCat) all.push(...g.items.map(i=>({...i,cat:g.cat,isSent:true}))); });
+    return all;
+  }
+}
+
+function renderFC(){
+  const items=getFcItems();
+  if(!items.length) return;
+  S.fcIdx = Math.min(S.fcIdx, items.length-1);
+  const item = items[S.fcIdx];
+  document.getElementById('fcCounter').textContent = `${S.fcIdx+1} / ${items.length}`;
+  document.getElementById('fcCard').classList.remove('flipped');
+
+  if(item.isSent){
+    document.getElementById('fcFront').textContent = item.ar;
+    document.getElementById('fcFront').className = 'main-text';
+    document.getElementById('fcBack').textContent = item.en;
+    document.getElementById('fcBack').className = 'main-text en';
+    document.getElementById('fcPron').style.display='none';
+    document.getElementById('fcMeaning').textContent='';
+  } else {
+    document.getElementById('fcFront').textContent = item.ar;
+    document.getElementById('fcFront').className = 'main-text';
+    document.getElementById('fcBack').textContent = item.en;
+    document.getElementById('fcBack').className = 'main-text en';
+    const pronEl = document.getElementById('fcPron');
+    pronEl.textContent = '🗣️ النطق: ' + item.pron;
+    pronEl.style.display='block';
+    document.getElementById('fcMeaning').textContent = item.meaning;
+  }
+}
+
+function flipCard(){ document.getElementById('fcCard').classList.toggle('flipped'); }
+
+function nextCard(){ const items=getFcItems(); S.fcIdx=(S.fcIdx+1)%items.length; renderFC(); save(); }
+function prevCard(){ const items=getFcItems(); S.fcIdx=(S.fcIdx-1+items.length)%items.length; renderFC(); save(); }
+
+function markCard(known){
+  const items=getFcItems();
+  const item=items[S.fcIdx];
+  const key = item.en ? item.en.substring(0,30) : '';
+  if(known){
+    if(!S.knownWords.includes(key)){ S.knownWords.push(key); S.xp+=5; document.getElementById('xpVal').textContent=S.xp; showToast('✅ ممتاز! +5 نقاط','g'); }
+    else showToast('👍 عارفها من قبل','y');
+  } else { showToast('💪 هتتعلمها! واصل','y'); }
+  save(); nextCard();
+}
+
+// ================================================================
+//  QUIZ
+// ================================================================
+const qCfg = { mode:'ar-en', cat:'الكل' };
+
+function setCfg(k,v,el){
+  qCfg[k]=v;
+  if(k==='mode'){
+    document.querySelectorAll('[id^="m"]').forEach(b=>{
+      if(['mAE','mEA','mSent'].includes(b.id)) b.classList.remove('active');
+    });
+  } else {
+    document.querySelectorAll('[id^="c"]').forEach(b=>{
+      if(['cAll','cDef','cComp','cData','cApp','cFn'].includes(b.id)) b.classList.remove('active');
+    });
+  }
+  el.classList.add('active');
+}
+
+function startQuiz(){
+  let pool = [];
+  if(qCfg.mode==='sent'){
+    sentences.forEach(g=>{
+      if(qCfg.cat==='الكل'||g.cat===qCfg.cat) pool.push(...g.items.map(i=>({...i,cat:g.cat,isSent:true})));
+    });
+  } else {
+    pool = qCfg.cat==='الكل' ? words : words.filter(w=>w.cat===qCfg.cat);
+  }
+  if(pool.length < 4){ showToast('عدد الكلمات قليل، اختار تصنيف أكبر','y'); return; }
+
+  S.quizQs = pool.sort(()=>Math.random()-0.5).slice(0,10);
+  S.qIdx=0; S.qScore=0; S.wrongQs=[];
+
+  document.getElementById('quizSetup').style.display='none';
+  document.getElementById('quizArea').style.display='block';
+  document.getElementById('resultBox').classList.remove('show');
+  renderQ(pool);
+}
+
+let currentPool=[];
+function renderQ(pool){
+  currentPool = pool||currentPool;
+  if(S.qIdx >= S.quizQs.length){ showResult(); return; }
+  const q = S.quizQs[S.qIdx];
+  const pct = (S.qIdx/S.quizQs.length)*100;
+  document.getElementById('qFill').style.width=pct+'%';
+  document.getElementById('qLabel').textContent=`${S.qIdx} / ${S.quizQs.length}`;
+
+  const badge=document.getElementById('qBadge');
+  const qText=document.getElementById('qText');
+  const qSub=document.getElementById('qSub');
+
+  if(q.isSent){
+    badge.textContent='ترجمة جملة'; badge.className='q-badge para';
+    if(qCfg.mode==='ar-en'||qCfg.mode==='sent'){
+      qText.textContent=q.ar; qText.className='q-text';
+      qSub.textContent='👇 اختار الترجمة الصحيحة بالإنجليزي';
+    } else {
+      qText.innerHTML=`<div class="q-text para-en">${q.en}</div>`;
+      qText.className='q-text';
+      qSub.textContent='👇 اختار الترجمة الصحيحة بالعربي';
+    }
+  } else if(qCfg.mode==='ar-en'){
+    badge.textContent='عربي → إنجليزي'; badge.className='q-badge ae';
+    qText.textContent=q.ar; qText.className='q-text';
+    qSub.textContent='👇 اختار الكلمة الصحيحة بالإنجليزي';
+  } else {
+    badge.textContent='إنجليزي → عربي'; badge.className='q-badge ea';
+    qText.textContent=q.en; qText.className='q-text en';
+    qSub.textContent=`🗣️ النطق: ${q.pron||''} — اختار المعنى الصحيح`;
+  }
+
+  // Build options: correct + 3 wrong from same pool type
+  let wrongPool;
+  if(q.isSent){
+    let allSents=[];
+    sentences.forEach(g=>allSents.push(...g.items));
+    wrongPool = allSents.filter(x=>x.en!==q.en);
+  } else {
+    wrongPool = words.filter(x=>x.en!==q.en);
+  }
+  const wrongs = wrongPool.sort(()=>Math.random()-0.5).slice(0,3);
+  const opts = [...wrongs, q].sort(()=>Math.random()-0.5);
+
+  let isEngResult = (q.isSent && (qCfg.mode==='ar-en'||qCfg.mode==='sent')) || (!q.isSent && qCfg.mode==='ar-en');
+  const correctLabel = isEngResult ? q.en : q.ar;
+
+  const container=document.getElementById('opts');
+  container.innerHTML = opts.map(o=>{
+    const label = isEngResult ? o.en : o.ar;
+    const cls = q.isSent ? 'opt para-opt' : 'opt';
+    const shortLabel = label.length>80 ? label.substring(0,80)+'...' : label;
+    return `<button class="${cls}" data-correct="${o.en===q.en}" onclick="answerQ(this,'${q.en.replace(/'/g,"\\'")}',${isEngResult})">${shortLabel}</button>`;
+  }).join('');
+
+  document.getElementById('fb').className='feedback';
+  document.getElementById('nextBtn').style.display='none';
+}
+
+function answerQ(btn, correctEn, isEngResult){
+  document.querySelectorAll('.opt').forEach(b=>b.disabled=true);
+  const isCorrect = btn.dataset.correct==='true';
+  const fb=document.getElementById('fb');
+  const correctWord = S.quizQs[S.qIdx];
+
+  if(isCorrect){
+    btn.classList.add('correct');
+    fb.textContent='✅ إجابة صحيحة! ممتاز 🎉';
+    fb.className='feedback correct show';
+    S.qScore++; S.xp+=10;
+    document.getElementById('xpVal').textContent=S.xp;
+  } else {
+    btn.classList.add('wrong');
+    document.querySelectorAll('.opt').forEach(b=>{ if(b.dataset.correct==='true') b.classList.add('correct'); });
+    const correctText = isEngResult ? correctWord.en : correctWord.ar;
+    const shortCorrect = correctText.length>60 ? correctText.substring(0,60)+'...' : correctText;
+    fb.innerHTML=`❌ غلط! الإجابة الصحيحة:<br><strong style="color:var(--green)">${shortCorrect}</strong>`;
+    fb.className='feedback wrong show';
+    S.wrongQs.push(correctWord);
+  }
+  S.qAnswered++; save();
+  S.qIdx++;
+  document.getElementById('nextBtn').style.display='block';
+}
+
+function nextQ(){ renderQ(); }
+
+function showResult(){
+  document.getElementById('quizArea').style.display='none';
+  const rb=document.getElementById('resultBox');
+  rb.classList.add('show');
+
+  const pct=Math.round((S.qScore/Math.min(10,S.quizQs.length))*100);
+  if(pct>S.bestScore){ S.bestScore=pct; save(); }
+
+  const circ=document.getElementById('scoreCircle');
+  circ.textContent=`${S.qScore}/${Math.min(10,S.quizQs.length)}`;
+  circ.className='score-circle '+(pct>=80?'great':pct>=50?'ok':'bad');
+
+  document.getElementById('rMsg').textContent = pct>=80?'🎉 ممتاز يا أحمد!':pct>=50?'👍 كويس، واصل!':'💪 راجع وحاول تاني';
+  document.getElementById('rSub').textContent = `نتيجتك: ${pct}% — ${S.qScore} صح من ${Math.min(10,S.quizQs.length)}`;
+
+  S.xp += pct; document.getElementById('xpVal').textContent=S.xp; save();
+
+  const wl=document.getElementById('wrongList');
+  if(S.wrongQs.length){
+    wl.innerHTML='<h4>❌ الكلمات اللي غلطت فيها:</h4>'+
+      S.wrongQs.map(w=>
+        `<div class="wi">
+          <strong>${w.ar||''}</strong><br>
+          <span class="en">${w.en||''}</span>
+          ${w.pron?`<br><span style="color:var(--yellow);font-size:0.78rem">🗣️ ${w.pron}</span>`:''}
+          ${w.meaning?`<br><span class="correct-ans">✅ ${w.meaning}</span>`:''}
+        </div>`
+      ).join('');
+  } else { wl.innerHTML='<p style="color:var(--green);margin-top:1rem">🎊 ماغلطتش في حاجة!</p>'; }
+}
+
+function retryQuiz(){
+  document.getElementById('resultBox').classList.remove('show');
+  document.getElementById('quizSetup').style.display='block';
+}
+
+// ================================================================
+//  SENTENCES
+// ================================================================
+function initSents(){
+  const cats=['الكل',...sentences.map(g=>g.cat)];
+  document.getElementById('sentPills').innerHTML = cats.map(c=>
+    `<button class="pill purple ${c===S.sentCat?'active':''}" onclick="setSentCat('${c}')">${c}</button>`
+  ).join('');
+  renderSents();
+}
+function setSentCat(c){
+  S.sentCat=c;
+  document.querySelectorAll('#sentPills .pill').forEach(b=>b.classList.toggle('active',b.textContent===c));
+  renderSents();
+}
+function renderSents(){
+  const container=document.getElementById('sentList');
+  let html='';
+  sentences.forEach(g=>{
+    if(S.sentCat!=='الكل' && g.cat!==S.sentCat) return;
+    html+=`<h3 style="color:var(--accent);margin:1rem 0 0.6rem;font-size:1rem">📌 ${g.cat}</h3>`;
+    g.items.forEach((item,i)=>{
+      html+=`<div class="sent-card">
+        <div class="sent-en">${item.en}</div>
+        <div class="sent-ar">${item.ar}</div>
+      </div>`;
+    });
+  });
+  container.innerHTML=html;
+}
+
+// ================================================================
+//  DICTIONARY
+// ================================================================
+function initDict(){
+  const cats=['الكل',...new Set(words.map(w=>w.cat))];
+  document.getElementById('dictPills').innerHTML = cats.map(c=>
+    `<button class="pill ${c===S.dictCat?'active':''}" onclick="setDictCat('${c}')">${c}</button>`
+  ).join('');
+  renderDict();
+}
+function setDictCat(c){
+  S.dictCat=c;
+  document.querySelectorAll('#dictPills .pill').forEach(b=>b.classList.toggle('active',b.textContent===c));
+  renderDict();
+}
+function renderDict(){
+  const q=(document.getElementById('dictQ').value||'').toLowerCase().trim();
+  let filtered = S.dictCat==='الكل' ? words : words.filter(w=>w.cat===S.dictCat);
+  if(q) filtered=filtered.filter(w=>w.ar.includes(q)||w.en.toLowerCase().includes(q)||w.meaning.includes(q));
+  const grid=document.getElementById('dictGrid');
+  if(!filtered.length){ grid.innerHTML='<div style="color:var(--muted);text-align:center;padding:2rem;grid-column:1/-1">لا توجد نتائج 🔍</div>'; return; }
+  grid.innerHTML=filtered.map(w=>{
+    const c=catColor[w.cat]||'#888';
+    return `<div class="dcard">
+      <div class="d-en">${w.en}</div>
+      <div class="d-pron">🗣️ ${w.pron}</div>
+      <div class="d-ar">${w.ar}</div>
+      <div class="d-meaning">${w.meaning}</div>
+      <span class="d-cat" style="background:${c}22;color:${c};border:1px solid ${c}44">${w.cat}</span>
+    </div>`;
+  }).join('');
+}
+
+// ================================================================
+//  PROGRESS
+// ================================================================
+function updateProgress(){
+  document.getElementById('pTotal').textContent=words.length;
+  document.getElementById('pKnown').textContent=S.knownWords.length;
+  document.getElementById('pPct').textContent=Math.round((S.knownWords.length/words.length)*100)+'%';
+  document.getElementById('pQs').textContent=S.qAnswered;
+  document.getElementById('pBest').textContent=S.bestScore+'%';
+  const chips=document.getElementById('knownChips');
+  if(!S.knownWords.length){ chips.innerHTML='<span style="color:var(--muted);font-size:0.85rem">لسه مفيش. روح البطاقات وابدأ 🃏</span>'; return; }
+  chips.innerHTML=S.knownWords.map(k=>{
+    const w=words.find(x=>x.en.startsWith(k.substring(0,25)));
+    return w?`<span class="k-chip">${w.ar} <span style="font-size:0.72rem;opacity:0.7">| ${k.substring(0,20)}</span></span>`:'';
+  }).join('');
+}
+function resetAll(){
+  if(!confirm('مؤكد؟')) return;
+  S.xp=0; S.knownWords=[]; S.qAnswered=0; S.bestScore=0; save();
+  updateProgress(); document.getElementById('xpVal').textContent=0;
+  showToast('🗑️ تم المسح','y');
+}
+
+// ================================================================
+//  TOAST
+// ================================================================
+function showToast(msg,cls){
+  const t=document.getElementById('toast');
+  t.textContent=msg; t.className='toast show '+(cls||'');
+  setTimeout(()=>t.className='toast',2500);
+}
+
+// ================================================================
+//  INIT
+// ================================================================
+load();
+initFC();
+document.getElementById('xpVal').textContent=S.xp;
+</script>
+</body>
+</html>
